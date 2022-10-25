@@ -2,7 +2,8 @@
 level1_bookratingprediction_recsys-level1-recsys-05 created by GitHub Classroom
 
 .gitignore 
-  data/images/*.jpg
+  
+ data/images/*.jpg
   
   
  사용법
