@@ -1,1 +1,4 @@
-data/images/*.jpg
+.DS_Store
+.ipynb_checkpoints/
+.git/
+data/
