@@ -14,9 +14,22 @@ from src import NeuralCollaborativeFiltering, WideAndDeepModel, DeepCrossNetwork
 from src import CNN_FM
 from src import DeepCoNN
 
+import wandb
 
 def main(args):
     seed_everything(args.SEED)
+
+    ############## WANDB START
+    wandb.init(
+        project="book_recomendation", 
+        entity="boostcamp_l1_recsys05",
+        name=f"experiment_{args.MODEL}", 
+        # Track hyperparameters and run metadata
+        config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR
+            })
 
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
@@ -32,6 +45,7 @@ def main(args):
         data = text_data_load(args)
     else:
         pass
+
 
     ######################## Train/Valid Split
     print(f'--------------- {args.MODEL} Train/Valid Split ---------------')
@@ -71,6 +85,8 @@ def main(args):
         model = DeepCoNN(args, data)
     else:
         pass
+    
+
 
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
@@ -100,10 +116,15 @@ def main(args):
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
     submission.to_csv('submit/{}_{}.csv'.format(save_time, args.MODEL), index=False)
+    wandb.finish()
+
 
 
 
 if __name__ == "__main__":
+    
+    #######WANDB LOGIN
+    wandb.login()
 
     ######################## BASIC ENVIRONMENT SETUP
     parser = argparse.ArgumentParser(description='parser')

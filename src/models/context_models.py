@@ -9,6 +9,7 @@ import torch.optim as optim
 from ._models import _FactorizationMachineModel, _FieldAwareFactorizationMachineModel
 from ._models import rmse, RMSELoss
 
+import wandb
 
 class FactorizationMachineModel:
 
@@ -35,6 +36,8 @@ class FactorizationMachineModel:
 
     def train(self):
       # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
+
+    
         for epoch in range(self.epochs):
             self.model.train()
             total_loss = 0
@@ -52,8 +55,12 @@ class FactorizationMachineModel:
                 if (i + 1) % self.log_interval == 0:
                     tk0.set_postfix(loss=total_loss / self.log_interval)
                     total_loss = 0
+            
+            wandb.log({"loss": total_loss}, step=epoch)
 
             rmse_score = self.predict_train()
+            wandb.log({"rmse": rmse_score}, step=epoch)
+
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
 
 
