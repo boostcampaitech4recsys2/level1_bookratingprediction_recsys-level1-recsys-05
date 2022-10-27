@@ -20,6 +20,7 @@ def main(args):
     seed_everything(args.SEED)
 
     ############## WANDB START
+    """
     wandb.init(
         project="book_recomendation", 
         entity="boostcamp_l1_recsys05",
@@ -30,7 +31,26 @@ def main(args):
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR
             })
-
+        """
+    
+    """
+    sweep_configuration = {
+        'method': 'bayes',
+        'name': 'sweep',
+        'metric': {'goal': 'minimize', 'name': 'rmse'}, 
+        'parameters':{
+            'batch_size': {'max': 2048, 'min': 512},
+            'epochs': {'max': 20, 'min': 5},
+            'lr': {'max': 0.002, 'min': 0.0005 }
+            }}   """
+    sweep_configuration = {
+        'method': 'bayes',
+        'name': 'sweep',
+        'metric': {'goal': 'minimize', 'name': 'rmse'}, 
+        'parameters':{
+            'epochs': {'max': 20, 'min': 5},
+            'lr': {'max': 0.002, 'min': 0.0005 }
+            }}
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -90,7 +110,13 @@ def main(args):
 
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
-    model.train()
+    
+    
+    if args.MODEL=='FM':
+        sweep_id = wandb.sweep(sweep=sweep_configuration, project=f"experiment_{args.MODEL}")
+        wandb.agent(sweep_id, function=model.train_wandb,count =5)
+    else:
+        model.train()
 
     ######################## INFERENCE
     print(f'--------------- {args.MODEL} PREDICT ---------------')
@@ -116,7 +142,7 @@ def main(args):
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
     submission.to_csv('submit/{}_{}.csv'.format(save_time, args.MODEL), index=False)
-    wandb.finish()
+    #wandb.finish()
 
 
 
@@ -124,7 +150,7 @@ def main(args):
 if __name__ == "__main__":
     
     #######WANDB LOGIN
-    wandb.login()
+    #wandb.login()
 
     ######################## BASIC ENVIRONMENT SETUP
     parser = argparse.ArgumentParser(description='parser')
