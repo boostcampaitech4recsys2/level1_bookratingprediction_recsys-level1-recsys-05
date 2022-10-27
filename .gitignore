@@ -6,5 +6,6 @@
 data/text_vector/*.npy
 #모델 돌리면 나오는 파일
 .cpython-38.pyc
-
+/wandb
+/models
 #향후에 나오는 ignore값 추가시 주석 달아주세요.
