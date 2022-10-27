@@ -1,6 +1,7 @@
 import time
 import argparse
 import pandas as pd
+import wandb
 
 from src import seed_everything
 
@@ -16,6 +17,16 @@ from src import DeepCoNN
 
 
 def main(args):
+    wandb.init(
+        project="minju-test", 
+        entity="boostcamp_l1_recsys05",
+        name=f"experiment_{args.MODEL}", 
+        # Track hyperparameters and run metadata
+        config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR
+            })
     seed_everything(args.SEED)
 
     ######################## DATA LOAD
@@ -72,6 +83,9 @@ def main(args):
     else:
         pass
 
+    wandb.config.update(args)
+    # wandb.watch(model)
+
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
     model.train()
@@ -101,6 +115,7 @@ def main(args):
     save_time = now_date + '_' + now_hour.replace(':', '')
     submission.to_csv('submit/{}_{}.csv'.format(save_time, args.MODEL), index=False)
 
+    
 
 
 if __name__ == "__main__":

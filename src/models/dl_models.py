@@ -1,5 +1,5 @@
 import tqdm
-
+import wandb
 import numpy as np
 
 import torch
@@ -55,8 +55,9 @@ class NeuralCollaborativeFiltering:
                 if (i + 1) % self.log_interval == 0:
                     tk0.set_postfix(loss=total_loss / self.log_interval)
                     total_loss = 0
-
+            wandb.log({"loss":total_loss},step =epoch)
             rmse_score = self.predict_train()
+            wandb.log({"rmse":rmse_score},step = epoch)
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
 
 
@@ -198,8 +199,9 @@ class DeepCrossNetworkModel:
                 if (i + 1) % self.log_interval == 0:
                     tk0.set_postfix(loss=total_loss / self.log_interval)
                     total_loss = 0
-
+            wandb.log({"loss": total_loss}, step = epoch)
             rmse_score = self.predict_train()
+            wandb.log({"rmse": rmse_score}, step = epoch)
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
 
 
