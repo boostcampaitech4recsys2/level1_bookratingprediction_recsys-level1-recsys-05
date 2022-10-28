@@ -74,7 +74,7 @@ def process_context_data(users, books, ratings1, ratings2):
         "language2idx":language2idx,
         "author2idx":author2idx,
     }
-
+    
     return idx, train_df, test_df
 
 

@@ -110,6 +110,7 @@ class CNN_FM:
             tk0.set_postfix(train_loss=total_loss/n, valid_loss=val_total_loss/val_n)
             wandb.log({"total_loss": total_loss/n}, step = epoch)
             wandb.log({"val_loss": val_total_loss/n}, step = epoch)
+        return val_total_loss/n
 
     def predict(self, test_data_loader):
         self.model.eval()
