@@ -1,6 +1,7 @@
 import time
 import argparse
 import pandas as pd
+import wandb
 
 from src import seed_everything
 
@@ -17,6 +18,16 @@ from src import DeepCoNN
 import wandb
 
 def main(args):
+    wandb.init(
+        project="minju-test", 
+        entity="boostcamp_l1_recsys05",
+        name=f"experiment_{args.MODEL}", 
+        # Track hyperparameters and run metadata
+        config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR
+            })
     seed_everything(args.SEED)
 
     ############## WANDB START
@@ -107,6 +118,10 @@ def main(args):
         pass
     
 
+
+
+    wandb.config.update(args)
+    # wandb.watch(model)
 
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')

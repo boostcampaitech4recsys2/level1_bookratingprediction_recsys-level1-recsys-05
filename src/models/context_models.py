@@ -1,4 +1,5 @@
 import tqdm
+import wandb
 
 import numpy as np
 
@@ -176,7 +177,7 @@ class FieldAwareFactorizationMachineModel:
 
             rmse_score = self.predict_train()
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
-
+        return rmse_score
 
     def predict_train(self):
         self.model.eval()

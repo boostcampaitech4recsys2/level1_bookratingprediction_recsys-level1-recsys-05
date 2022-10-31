@@ -8,5 +8,5 @@ data/text_vector/*.npy
 __pycache__
 #wandb output json file
 /wandb
-
+/models
 #향후에 나오는 ignore값 추가시 주석 달아주세요.
