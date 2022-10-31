@@ -10,7 +10,6 @@ import torch
 from torch.utils.data import DataLoader, Dataset
 from torch.autograd import Variable
 from transformers import BertModel, BertTokenizer
-import wandb
 
 
 def text_preprocessing(summary):
@@ -186,17 +185,38 @@ def text_data_load(args):
     return data
 
 
-def text_data_split(args, data):
-    X_train, X_valid, y_train, y_valid = train_test_split(
-                                                        data['text_train'][['user_id', 'isbn', 'user_summary_merge_vector', 'item_summary_vector']],
-                                                        data['text_train']['rating'],
-                                                        test_size=args.TEST_SIZE,
-                                                        random_state=args.SEED,
-                                                        shuffle=True
-                                                        )
-    data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
-    return data
+# def text_data_split(args, data):
+#     X_train, X_valid, y_train, y_valid = train_test_split(
+#                                                         data['text_train'][['user_id', 'isbn', 'user_summary_merge_vector', 'item_summary_vector']],
+#                                                         data['text_train']['rating'],
+#                                                         test_size=args.TEST_SIZE,
+#                                                         random_state=args.SEED,
+#                                                         shuffle=True
+#                                                         )
+#     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+#     return data
 
+def text_data_split(args, data):
+    count=data['train'].groupby("user_id").size()
+    dfcount = pd.DataFrame(count, columns=["count"])
+    data['train']=data['train'].merge(dfcount,on="user_id")
+    data['train']=data['train'][1::]
+    alrtrain = data['train'][data['train']["count"]!=1].drop(['count'],axis=1)
+    newtrain1 = data['train'][data['train']["count"]==1].drop(['count'],axis=1)
+
+    alr_train, alr_valid, alry_train, alry_valid = train_test_split(
+                                                    alrtrain.drop(['rating'], axis=1),
+                                                    alrtrain['rating'],
+                                                    test_size = 0.11,
+                                                    random_state=42, # args.SEED
+                                                    shuffle=True
+                                                    )
+
+
+    data['X_train'], data['y_train'],  = alr_train, alry_train
+    data['X_valid'] = pd.concat([newtrain1.drop(['rating'], axis=1),alr_valid])
+    data['y_valid'] = pd.concat([newtrain1['rating'],alry_valid])
+    return data
 
 def text_data_loader(args, data):
     train_dataset = Text_Dataset(
