@@ -26,6 +26,38 @@ def process_context_data(users, books, ratings1, ratings2):
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
 
+    ######################### location 전처리
+    users['location_city'] = users['location_city'].str.strip()
+    users['location_state'] = users['location_state'].str.strip()
+    users['location_country'] = users['location_country'].str.strip()
+
+    users['location_city'] = users['location_city'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    users['location_state'] = users['location_state'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    users['location_country'] = users['location_country'].str.replace(r'[^a-zA-Z]', '', regex=True)
+
+    # australia
+    users.loc[users['location_country'].str.contains('australia'), 'location_country'] = 'australia'
+    # italy
+    users.loc[users['location_country'].str.contains('ital'), 'location_country'] = 'italy'
+    # germany
+    users.loc[users['location_country'].str.contains('deut'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('germ'), 'location_country'] = 'germany'
+    # united kingdom
+    users.loc[users['location_country'].str.contains('eng'), 'location_country'] = 'united kingdom'
+    users.loc[users['location_country'].str.contains('king'), 'location_country'] = 'united kingdom'
+    # france
+    users.loc[users['location_country'].str.contains('fran'), 'location_country'] = 'france'
+    # spain
+    users.loc[users['location_country'].str.contains('esp'), 'location_country'] = 'spain'
+    # usa
+    users.loc[users['location_country'].str.contains('america'), 'location_country'] = 'usa'
+    users.loc[users['location_country'].str.contains('usa'), 'location_country'] = 'usa'
+    users.loc[users['location_country'].str.contains('state'), 'location_country'] = 'usa'
+    users.loc[users['location_country'].str.contains('sate'), 'location_country'] = 'usa'
+
+
+    #########################
+
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
     # 인덱싱 처리된 데이터 조인
