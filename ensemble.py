@@ -25,6 +25,7 @@ def main(args):
     else:
         pass
     en.output_frame['rating'] = result
+    print(result)
     output = en.output_frame.copy()
     files_title = '-'.join(file_list)
 

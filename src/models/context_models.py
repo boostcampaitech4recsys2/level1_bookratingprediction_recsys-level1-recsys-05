@@ -61,7 +61,7 @@ class FactorizationMachineModel:
             rmse_score = self.predict_train()
             wandb.log({"rmse": rmse_score}, step = epoch)
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
-
+        return rmse_score
 
 
     def predict_train(self):

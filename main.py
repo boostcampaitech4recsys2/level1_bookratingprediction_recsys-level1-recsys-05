@@ -88,7 +88,7 @@ def main(args):
 
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
-    model.train()
+    rmse = model.train()
 
     ######################## INFERENCE
     print(f'--------------- {args.MODEL} PREDICT ---------------')
@@ -113,7 +113,7 @@ def main(args):
     now_date = time.strftime('%Y%m%d', now)
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
-    submission.to_csv('submit/{}_{}.csv'.format(save_time, args.MODEL), index=False)
+    submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
     
 
