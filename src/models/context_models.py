@@ -40,8 +40,6 @@ class FactorizationMachineModel:
 
     def train(self):
       # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
-
-    
         for epoch in range(self.epochs):
             self.model.train()
             total_loss = 0
@@ -59,60 +57,12 @@ class FactorizationMachineModel:
                 if (i + 1) % self.log_interval == 0:
                     tk0.set_postfix(loss=total_loss / self.log_interval)
                     total_loss = 0
-            
-            #wandb.log({"loss": total_loss}, step=epoch)
-
+            wandb.log({"loss": total_loss}, step = epoch)
             rmse_score = self.predict_train()
-           # wandb.log({"rmse": rmse_score}, step=epoch)
-            wandb.log({
-                "loss": total_loss,
-                "rmse": rmse_score
-            }, step=epoch)
-
+            wandb.log({"rmse": rmse_score}, step = epoch)
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
+        return rmse_score
 
-    def train_wandb(self):
-      # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
-      
-       
-        #1e-3 = 0.001 = default lr
-        wandb.init(
-            project="book exp", 
-            entity="seongjae",
-            name="experiment_FM")
-        # Track hyperparameters and run metadata
-        
- 
-
-        self.epochs = wandb.config.epochs
-        self.learning_rate = wandb.config.lr
-        for epoch in range(self.epochs):
-            self.model.train()
-            total_loss = 0
-            tk0 = tqdm.tqdm(self.train_dataloader, smoothing=0, mininterval=1.0)
-            for i, (fields, target) in enumerate(tk0):
-                self.model.zero_grad()
-                fields, target = fields.to(self.device), target.to(self.device)
-
-                y = self.model(fields)
-                loss = self.criterion(y, target.float())
-
-                loss.backward()
-                self.optimizer.step()
-                total_loss += loss.item()
-                if (i + 1) % self.log_interval == 0:
-                    tk0.set_postfix(loss=total_loss / self.log_interval)
-                    total_loss = 0
-            
-
-            rmse_score = self.predict_train()
-            
-            wandb.log({
-                "loss": total_loss,
-                "rmse": rmse_score
-            }, step=epoch)
-
-            print('epoch:', epoch, 'validation: rmse:', rmse_score)
 
     def predict_train(self):
         self.model.eval()

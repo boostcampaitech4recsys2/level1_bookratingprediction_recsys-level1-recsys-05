@@ -15,9 +15,9 @@ from src import NeuralCollaborativeFiltering, WideAndDeepModel, DeepCrossNetwork
 from src import CNN_FM
 from src import DeepCoNN
 
-import wandb
 
 def main(args):
+    """
     wandb.init(
         project="minju-test", 
         entity="boostcamp_l1_recsys05",
@@ -27,11 +27,11 @@ def main(args):
             "epochs": args.EPOCHS,
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR
-            })
+            })"""
     seed_everything(args.SEED)
 
     ############## WANDB START
-    """
+    
     wandb.init(
         project="book_recomendation", 
         entity="boostcamp_l1_recsys05",
@@ -42,7 +42,7 @@ def main(args):
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR
             })
-        """
+        
     
     """
     sweep_configuration = {
@@ -62,6 +62,7 @@ def main(args):
             'epochs': {'max': 20, 'min': 5},
             'lr': {'max': 0.002, 'min': 0.0005 }
             }}
+
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -76,7 +77,6 @@ def main(args):
         data = text_data_load(args)
     else:
         pass
-
 
     ######################## Train/Valid Split
     print(f'--------------- {args.MODEL} Train/Valid Split ---------------')
@@ -116,22 +116,13 @@ def main(args):
         model = DeepCoNN(args, data)
     else:
         pass
-    
-
-
 
     wandb.config.update(args)
     # wandb.watch(model)
 
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
-    
-    
-    if args.MODEL=='FM':
-        sweep_id = wandb.sweep(sweep=sweep_configuration, project=f"experiment_{args.MODEL}")
-        wandb.agent(sweep_id, function=model.train_wandb,count =5)
-    else:
-        model.train()
+    rmse = model.train()
 
     ######################## INFERENCE
     print(f'--------------- {args.MODEL} PREDICT ---------------')
@@ -181,16 +172,12 @@ def main(args):
     now_date = time.strftime('%Y%m%d', now)
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
-    submission.to_csv('submit/{}_{}.csv'.format(save_time, args.MODEL), index=False)
-    #wandb.finish()
+    submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
-
+    
 
 
 if __name__ == "__main__":
-    
-    #######WANDB LOGIN
-    #wandb.login()
 
     ######################## BASIC ENVIRONMENT SETUP
     parser = argparse.ArgumentParser(description='parser')

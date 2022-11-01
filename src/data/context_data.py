@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -30,11 +31,9 @@ def process_context_data(users, books, ratings1, ratings2):
     users['location_city'] = users['location_city'].str.strip()
     users['location_state'] = users['location_state'].str.strip()
     users['location_country'] = users['location_country'].str.strip()
-
     users['location_city'] = users['location_city'].str.replace(r'[^a-zA-Z]', '', regex=True)
     users['location_state'] = users['location_state'].str.replace(r'[^a-zA-Z]', '', regex=True)
     users['location_country'] = users['location_country'].str.replace(r'[^a-zA-Z]', '', regex=True)
-
     '''
     location_country
     '''
@@ -146,8 +145,6 @@ def process_context_data(users, books, ratings1, ratings2):
     users.loc[users['location_country'].str.contains('seoul'), 'location_country'] = 'southkorea'
     # brazil
     users.loc[users['location_country'].str.contains('disritofederal'), 'location_country'] = 'brazil'
-
-
     '''
     location_city
     '''
@@ -164,21 +161,15 @@ def process_context_data(users, books, ratings1, ratings2):
     for keyword in canada_city_repl:
         users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'canada'
     #########################
-
     #########################
     users = users.drop(['location_city', 'location_state'], axis=1)
     #########################
-
-
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
-
     #출판사
     publisher_dict=(books['publisher'].value_counts()).to_dict()
     publisher_count_df= pd.DataFrame(list(publisher_dict.items()),columns = ['publisher','count'])
-
     publisher_count_df = publisher_count_df.sort_values(by=['count'], ascending = False)
     modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
-
     for publisher in modify_list:
         try:
             number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
@@ -186,67 +177,51 @@ def process_context_data(users, books, ratings1, ratings2):
             books.loc[books[books['isbn'].apply(lambda x: x[:4])==number].index,'publisher'] = right_publisher
         except: 
             pass
-
     #카테고리
     books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
-
-
     category_df = pd.DataFrame(books['category'].value_counts()).reset_index()
     category_df.columns = ['category','count']  
-
     books['category_high'] = books['category'].copy()
     books.loc[books[books['category']=='biography'].index, 'category_high'] = 'biography autobiography'
     books.loc[books[books['category']=='autobiography'].index,'category_high'] = 'biography autobiography'
-
     books.loc[books[books['category'].str.contains('history',na=False)].index,'category_high'] = 'history'
-
     categories = ['garden','crafts','physics','adventure','music','fiction','nonfiction','science','science fiction','social','homicide',
     'sociology','disease','religion','christian','philosophy','psycholog','mathemat','agricult','environmental',
     'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
     'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
-
     for category in categories:
         books.loc[books[books['category'].str.contains(category,na=False)].index,'category_high'] = category
-
     category_high_df = pd.DataFrame(books['category_high'].value_counts()).reset_index()
     category_high_df.columns = ['category','count']
-
     # 5개 이하인 항목은 others로 묶어주도록 하겠습니다.
     others_list = category_high_df[category_high_df['count']<5]['category'].values
     books.loc[books[books['category_high'].isin(others_list)].index, 'category_high']='others'
     # del books['category']
     # books.rename(columns = {'category_high':'category'},inplace=True)
-
-
     # 인덱싱 처리된 데이터 조인
     # isbn,book_title,book_author,year_of_publication,publisher,img_url,language,category,summary,img_path
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-
     # 인덱싱 처리
     # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
     # loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
     loc_country2idx = {v:k for k,v in enumerate(context_df['location_country'].unique())}
-
     # train_df['location_city'] = train_df['location_city'].map(loc_city2idx)
     # train_df['location_state'] = train_df['location_state'].map(loc_state2idx)
     train_df['location_country'] = train_df['location_country'].map(loc_country2idx)
     # test_df['location_city'] = test_df['location_city'].map(loc_city2idx)
     # test_df['location_state'] = test_df['location_state'].map(loc_state2idx)
     test_df['location_country'] = test_df['location_country'].map(loc_country2idx)
-
     train_df['age'] = train_df['age'].fillna(int(train_df['age'].mean()))
     train_df['age'] = train_df['age'].apply(age_map)
     test_df['age'] = test_df['age'].fillna(int(test_df['age'].mean()))
     test_df['age'] = test_df['age'].apply(age_map)
-
     # book 파트 인덱싱
     category2idx = {v:k for k,v in enumerate(context_df['category'].unique())}
     publisher2idx = {v:k for k,v in enumerate(context_df['publisher'].unique())}
     language2idx = {v:k for k,v in enumerate(context_df['language'].unique())}
     author2idx = {v:k for k,v in enumerate(context_df['book_author'].unique())}
-
     train_df['category'] = train_df['category'].map(category2idx)
     train_df['publisher'] = train_df['publisher'].map(publisher2idx)
     train_df['language'] = train_df['language'].map(language2idx)
@@ -255,7 +230,6 @@ def process_context_data(users, books, ratings1, ratings2):
     test_df['publisher'] = test_df['publisher'].map(publisher2idx)
     test_df['language'] = test_df['language'].map(language2idx)
     test_df['book_author'] = test_df['book_author'].map(author2idx)
-
     idx = {
         # "loc_city2idx":loc_city2idx,
         # "loc_state2idx":loc_state2idx,
@@ -265,7 +239,6 @@ def process_context_data(users, books, ratings1, ratings2):
         "language2idx":language2idx,
         "author2idx":author2idx,
     }
-
     return idx, train_df, test_df
 	
 
