@@ -118,13 +118,26 @@ def main(args):
         submission['rating'] = predicts
     else:
         pass
+    train1 = pd.read_csv('./data/train_ratings.csv')
+
+    count=train1.groupby("user_id").size()
+    dfcount = pd.DataFrame(count, columns=["count"])
+    submission=pd.merge(submission,dfcount, how='left', on='user_id')
+    submission['count'] = submission['count'].fillna(0)
+    submission.set_index("user_id",inplace = True)
+
+    for row in submission.itertuples():
+        if row[3] == 0 :
+            submission.at[row[0],"rating"] = 7
+
+    submission = submission.reset_index()
+    submission = submission.drop(['count'], axis=1)
+
 
     now = time.localtime()
     now_date = time.strftime('%Y%m%d', now)
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
-    print(rmse)
-    #submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
     submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
     
