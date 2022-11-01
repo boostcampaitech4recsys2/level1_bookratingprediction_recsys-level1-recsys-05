@@ -432,13 +432,13 @@ def process_context_data(users, books, ratings1, ratings2):
     # # del books['category']
     # # books.rename(columns = {'category_high':'category'},inplace=True)
 
-
+    
 
     # 인덱싱 처리된 데이터 조인
     # isbn,book_title,book_author,year_of_publication,publisher,img_url,language,category,summary,img_path
-    context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-    train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-    test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
+    context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'language', 'book_title']], on='isbn', how='left')
+    train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
+    test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
     
     # 인덱싱 처리
     # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
@@ -456,23 +456,23 @@ def process_context_data(users, books, ratings1, ratings2):
     test_df['age'] = test_df['age'].apply(age_map)
     # book 파트 인덱싱
     category2idx = {v:k for k,v in enumerate(context_df['category'].unique())}
-    publisher2idx = {v:k for k,v in enumerate(context_df['publisher'].unique())}
+    # publisher2idx = {v:k for k,v in enumerate(context_df['publisher'].unique())}
     language2idx = {v:k for k,v in enumerate(context_df['language'].unique())}
-    author2idx = {v:k for k,v in enumerate(context_df['book_author'].unique())}
+    author2idx = {v:k for k,v in enumerate(context_df['book_title'].unique())}
     train_df['category'] = train_df['category'].map(category2idx)
-    train_df['publisher'] = train_df['publisher'].map(publisher2idx)
+    # train_df['publisher'] = train_df['publisher'].map(publisher2idx)
     train_df['language'] = train_df['language'].map(language2idx)
-    train_df['book_author'] = train_df['book_author'].map(author2idx)
+    train_df['book_title'] = train_df['book_title'].map(author2idx)
     test_df['category'] = test_df['category'].map(category2idx)
-    test_df['publisher'] = test_df['publisher'].map(publisher2idx)
+    # test_df['publisher'] = test_df['publisher'].map(publisher2idx)
     test_df['language'] = test_df['language'].map(language2idx)
-    test_df['book_author'] = test_df['book_author'].map(author2idx)
+    test_df['book_title'] = test_df['book_title'].map(author2idx)
     idx = {
         # "loc_city2idx":loc_city2idx,
         # "loc_state2idx":loc_state2idx,
         "loc_country2idx":loc_country2idx,
         "category2idx":category2idx,
-        "publisher2idx":publisher2idx,
+        # "publisher2idx":publisher2idx,
         "language2idx":language2idx,
         "author2idx":author2idx,
     }
@@ -516,7 +516,7 @@ def context_data_load(args):
     '''
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_country2idx']),
-                            len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+                            len(idx['category2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
     data = {
             'train':context_train,
