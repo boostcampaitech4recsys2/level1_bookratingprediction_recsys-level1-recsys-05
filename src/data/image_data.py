@@ -100,17 +100,17 @@ def image_data_load(args):
     return data
 
 
-# def image_data_split(args, data):
-#     X_train, X_valid, y_train, y_valid = train_test_split(
-#                                                         data['img_train'][['user_id', 'isbn', 'img_vector']],
-#                                                         data['img_train']['rating'],
-#                                                         test_size=args.TEST_SIZE,
-#                                                         random_state=args.SEED,
-#                                                         shuffle=True
-#                                                         )
-#     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
-#     return data
-
+def image_data_split(args, data):
+    X_train, X_valid, y_train, y_valid = train_test_split(
+                                                         data['img_train'][['user_id', 'isbn', 'img_vector']],
+                                                         data['img_train']['rating'],
+                                                         test_size=args.TEST_SIZE,
+                                                         random_state=args.SEED,
+                                                         shuffle=True
+                                                         )
+    data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+    return data
+"""
 def image_data_split(args, data):
     count=data['train'].groupby("user_id").size()
     dfcount = pd.DataFrame(count, columns=["count"])
@@ -132,7 +132,7 @@ def image_data_split(args, data):
     data['X_valid'] = pd.concat([newtrain1.drop(['rating'], axis=1),alr_valid])
     data['y_valid'] = pd.concat([newtrain1['rating'],alry_valid])
     return data
-
+"""
 
 def image_data_loader(args, data):
     train_dataset = Image_Dataset(
