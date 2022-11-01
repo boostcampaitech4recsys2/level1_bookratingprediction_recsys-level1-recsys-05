@@ -51,7 +51,7 @@ def process_context_data(users, books, ratings1, ratings2):
     users.loc[users['location_country'] == 'c', 'location_country'] = 'null'
     # australia
     australia_repl = [
-        'newsouthwales', 'queensland', 'tasmania', 'victoria', 'nsw'
+        'newsouthwales', 'queensland', 'tasmania', 'victoria', 'nsw', 'southaustralia'
     ]
     for keyword in australia_repl:
         users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'australia'
@@ -151,20 +151,253 @@ def process_context_data(users, books, ratings1, ratings2):
 
 
     '''
+    location_state
+    '''
+    # usa
+    usa_state_repl = [
+        'usa', 'texas', 'tx', 'california', 'massachusetts', 'michigan', 'carolina', 'florida', 'colorado', 'pennsylvania',
+        'newyork', 'newjersey', 'virginia', 'dc', 'washington', 'iowa', 'illinois', 'georgia', 'kansas', 'missouri',
+        'mississippi', 'oregon', 'arizona', 'ohio', 'tennessee', 'idaho', 'alaska', 'alabama', 'minnesota', 'utah',
+        'kentucky', 'rhodeisland', 'maryland', 'louisiana', 'indiana', 'connecticut', 'wisconsin', 'newhampshire',
+        'nevada', 'oklahoma', 'georgia', 'maine', 'newmexico', 'nebraska', 'wyoming', 'frenchquarter', 'fl', 'nebr', 'ct',
+
+    ]
+    for keyword in usa_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'usa'
+    # canada
+    canada_state_repl = [
+        'britishcolumbia', 'newbrunswick', 'novascotia', 'ontario', 'alberta', 'quebec', 'saskatchewan',
+        'manitoba', 
+    ]
+    for keyword in canada_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'canada'
+    # mexico
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('jalisco')), 'location_country'] = 'mexico'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('michoacan')), 'location_country'] = 'mexico'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('morelos')), 'location_country'] = 'mexico'
+    # united kingdom
+    uk_state_repl = [
+        'newhampshire', 'nottinghamshire', 'england', 'middlesex', 'midlothian', 'scotland', 'westyorkshire',
+        'canterbury', 'wiltshire', 'kent', 'london', 'cambs', 'herts', 'isleofman', 'surrey', 'cheshire',
+        'gloucestershire', 'aberdeenshire'
+    ]
+    for keyword in uk_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'united kingdom'
+    # ireland
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('dublin')), 'location_country'] = 'ireland'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('wicklow')), 'location_country'] = 'ireland'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('colimerick')), 'location_country'] = 'ireland'
+    # australia
+    australia_state_repl = [
+        'newsouthwales', 'victoria', 'australiancapitalterritory', 'southaustralia', 'nsw'
+    ]
+    for keyword in australia_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'australia'
+    # germany
+    germany_state_repl = [
+        'nordrheinwestfalen', 'bayern', 'hamburg', 'badenwuerttemberg', 'badenwrttemberg', 'sachsen', 'berlin',
+        'stuttgart', 'nrw', 'bavaria', 'bremen'
+    ]
+    for keyword in germany_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'germany'
+    # switzerland
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('bern')), 'location_country'] = 'switzerland'
+    # austria
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('niederoesterreich')), 'location_country'] = 'austria'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('vienna')), 'location_country'] = 'austria'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('wien')), 'location_country'] = 'austria'
+    # slovenia
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('ljubljanskaregija')), 'location_country'] = 'slovenia'
+    # spain
+    spain_state_repl = [
+        'catalunya', 'pontevedra', 'madrid', 'bizkaia', 'asturias', 'pontevedra', 'barcelona', 'pasvasco',
+        'espaa', 'badajoz', 'gipuzkoa', 'valencia', 'galicia'
+    ]
+    for keyword in spain_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'spain'
+    # portugal
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('lisboa')), 'location_country'] = 'portugal'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('coimbra')), 'location_country'] = 'portugal'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('porto')), 'location_country'] = 'portugal'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('estremadura')), 'location_country'] = 'portugal'
+    # netherlands
+    netherlands_state_repl = [
+        'noordholland', 'utrecht', 'zuidholland', 'overijssel', 'friesland', 'northholland', 'schleswigholstein',
+        'zh', 'twente', 
+    ]
+    for keyword in netherlands_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'netherlands'
+    # belgium
+    belgium_state_repl = [
+        'vlaamsbrabant', 'liege'
+    ]
+    for keyword in belgium_state_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains(keyword)), 'location_country'] = 'belgium'
+    # new zealand
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('auckland')), 'location_country'] = 'newzealand'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('northisland')), 'location_country'] = 'newzealand'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('waikato')), 'location_country'] = 'newzealand'
+    # italy
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('italia')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('toscana')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('piemonte')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('lombardia')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('gorizia')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'] == 're'), 'location_country'] = 'italy'
+    # greece
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('townofbali')), 'location_country'] = 'greece'
+    # nigeria
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('imostate')), 'location_country'] = 'nigeria'
+    # southafrica
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('westerncape')), 'location_country'] = 'southafrica'
+    # romania
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('ilfov')), 'location_country'] = 'romania'
+    # malaysia
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('penang')), 'location_country'] = 'malaysia'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('negerisembilan')), 'location_country'] = 'malaysia'
+    # indonesia
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('jakarta')), 'location_country'] = 'indonesia'
+    # philippines
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('laguna')), 'location_country'] = 'philippines'
+    # singapore
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('singapore')), 'location_country'] = 'singapore'
+    # pakistan
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('punjab')), 'location_country'] = 'pakistan'
+    # denmark
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('jutland')), 'location_country'] = 'denmark'
+    # france
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('lorraine')), 'location_country'] = 'france'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('hautegaronne')), 'location_country'] = 'france'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('heraut')), 'location_country'] = 'france'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('rhnealpes')), 'location_country'] = 'france'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('iledefrance')), 'location_country'] = 'france'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('paca')), 'location_country'] = 'france'
+    # uruguay
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('montevideo')), 'location_country'] = 'uruguay'
+    # argentina
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('buenosaires')), 'location_country'] = 'argentina'
+    # peru
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('southamerica')), 'location_country'] = 'peru'
+    # chile
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('santiago')), 'location_country'] = 'chile'
+    # japan
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('iwakuni')), 'location_country'] = 'japan'
+    users.loc[(users['location_country'] == 'null') & (users['location_state'].str.contains('tokyo')), 'location_country'] = 'japan'
+
+
+
+    '''
     location_city
     '''
     # usa
     usa_city_repl = [
-        'losang', 'seattle', 'sanf', 'sand', 'newyork', 'newark', 'newbedford'
+        'losang', 'seattle', 'sanf', 'sand', 'newyork', 'newark', 'newbedford', 'portland', 'cincinnati',
+        'houston', 'albuquerque', 'chicago', 'austin', 'beaverton', 'raleigh', 'richmond', 'fairbanks',
+        'minneapolis', 'stlouis', 'tucson', 'oakland', 'boston', 'kansascity', 'denver', 'springfield',
+        'topeka', 'dallas', 'asheville', 'buffalo', 'fremont', 'stpaul', 'elcajon', 'miami', 'marysville',
+        'baltimore', 'charleston', 'santamonica', 'knoxville', 'rochester', 'orlando', 'coloradosprings',
+        'arlington', 'pensacola', 'sanjose', 'cedarrapids', 'olympia', 'lasvegas', 'mercerisland',
+        'encinitas', 'omaha', 'lawrence', 'sacramento', 'norfolk', 'kirkwood', 'tallahassee', 'lexington',
+        'kalamazoo', 'orleans', 'desmoines', 'aurora', 'annarbor', 'newbern', 'somerville', 'lakeland',
+        'hartford', 'tigard', 'phoenix', 'irvine', 'sanantonio', 'mesa', 'brooklyn', 'philadelphia',
+        'lacey', 'greenbay', 'pittsburg', 'wichita', 'elizabeth', 'murrieta', 'batonrouge', 'yuma',
+        'baycity', 'lynchburg', 'santabarbara', 'statenisland', 'saintpaul', 'lakewood', 'fallschurch',
+        'northhaven', 'frederick', 'milwaukie', 'cary', 'stcharles', 'lewiston', 'virginiabeach',
+        'longbranch', 'indianapolis', 'portales', 'fountainvalley', 'sebastopol', 'washington', 'louisville',
+        'millersburg'
     ]
     for keyword in usa_city_repl:
         users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'usa'
     # canada
     canada_city_repl = [
-        'calgary', 'vancouver',
+        'calgary', 'vancouver', 'toronto', 'ottawa', 'fredericton', 'victoria', 'hamilton', 'montreal',
+        'kelowna', 'winnipeg', 'saskatoon', 'halifax', 'edmonton', 'kitchener', 'regina', 'lethbridge',
+
     ]
     for keyword in canada_city_repl:
         users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'canada'
+    # italy
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('milano')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('roma')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('rome')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('genova')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('torino')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('perugia')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('salerno')), 'location_country'] = 'italy'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('firenze')), 'location_country'] = 'italy'
+    # united kingdom
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('london')), 'location_country'] = 'united kingdom'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('manchester')), 'location_country'] = 'united kingdom'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('cambridge')), 'location_country'] = 'united kingdom'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('york')), 'location_country'] = 'united kingdom'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('birmingham')), 'location_country'] = 'united kingdom'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('edinburgh')), 'location_country'] = 'united kingdom'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('newcastle')), 'location_country'] = 'united kingdom'
+    # germany
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('hamburg')), 'location_country'] = 'germany'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('berlin')), 'location_country'] = 'germany'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('augsburg')), 'location_country'] = 'germany'
+    # france
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('paris')), 'location_country'] = 'france'
+    # spain
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('barcelona')), 'location_country'] = 'spain'
+    # finland
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('helsinki')), 'location_country'] = 'finland'
+    # australia
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('melbourne')), 'location_country'] = 'australia'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('sidney')), 'location_country'] = 'australia'
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('canberra')), 'location_country'] = 'australia'
+    # singapore
+    users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains('singapore')), 'location_country'] = 'singapore'
+
+    '''
+    모든 null 값을 다 볼 순 없으므로,
+    user_id 별 데이터 많은 순서대로 null 값 처리
+    '''
+    # usa
+    usa_uids = [
+        83671, 179718, 187065, 104278, 146230, 93565, 67663, 84795, 175100,
+        273190, 51350, 19493, 226745, 57620, 125031, 113663, 178201, 91631,
+        83443, 239535, 135228, 23680, 259264, 209229, 929, 168036, 50129,
+        129368, 136465, 8937, 84523, 241749, 48743, 132188, 270897, 171045,
+        44842, 115473, 1131, 91017, 68768, 167587, 135411, 30889, 221557,
+        39195, 154346, 273110, 29497, 223816, 38718, 175529, 186238, 239449,
+        141543, 77676, 258277, 240113, 172486, 34988, 112818, 129474, 46295,
+        142041, 268035, 176102, 126985, 93386, 114601, 30650, 24105, 170850,
+        28372, 207651, 122802, 129389, 266764, 269140, 50504, 52993, 170208,
+        162264, 45641, 226556, 241214
+
+    ]
+    for uid in usa_uids:
+        users.loc[users['user_id'] == uid, 'location_country'] = 'usa'    
+    # uk
+    users.loc[users['user_id'] == 178522, 'location_country'] = 'united kingdom'
+    users.loc[users['user_id'] == 5476, 'location_country'] = 'united kingdom'
+    users.loc[users['user_id'] == 237064, 'location_country'] = 'united kingdom'
+    users.loc[users['user_id'] == 241537, 'location_country'] = 'united kingdom'
+    # ireland
+    users.loc[users['user_id'] == 26432, 'location_country'] = 'ireland'
+    # canada
+    canada_uids = [44089, 79188, 176100, 34087, 172962, 103160, 206693]
+    for uid in canada_uids:
+        users.loc[users['user_id'] == uid, 'location_country'] = 'canada'
+    # france
+    users.loc[users['user_id'] == 179641, 'location_country'] = 'france'
+    # germany
+    users.loc[users['user_id'] == 276538, 'location_country'] = 'germany'
+    users.loc[users['user_id'] == 102169, 'location_country'] = 'germany'
+    # austria
+    users.loc[users['user_id'] == 3923, 'location_country'] = 'austria'
+    users.loc[users['user_id'] == 14393, 'location_country'] = 'austria'
+    # portugal
+    users.loc[users['user_id'] == 164581, 'location_country'] = 'portugal'
+    # australia
+    users.loc[users['user_id'] == 11399, 'location_country'] = 'australia'
+    # malaysia
+    users.loc[users['user_id'] == 30445, 'location_country'] = 'malaysia'
+    users.loc[users['user_id'] == 28543, 'location_country'] = 'malaysia'
+    # philippines
+    users.loc[users['user_id'] == 131023, 'location_country'] = 'philippines'
     #########################
 
     #########################
