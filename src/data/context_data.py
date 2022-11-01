@@ -25,9 +25,7 @@ def process_context_data(users, books, ratings1, ratings2):
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
-
-
-
+    
     ######################### location 전처리
     users['location_city'] = users['location_city'].str.strip()
     users['location_state'] = users['location_state'].str.strip()
@@ -174,7 +172,54 @@ def process_context_data(users, books, ratings1, ratings2):
 
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
+    #출판사
+    publisher_dict=(books['publisher'].value_counts()).to_dict()
+    publisher_count_df= pd.DataFrame(list(publisher_dict.items()),columns = ['publisher','count'])
+
+    publisher_count_df = publisher_count_df.sort_values(by=['count'], ascending = False)
+    modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
+
+    for publisher in modify_list:
+        try:
+            number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
+            right_publisher = books[books['isbn'].apply(lambda x: x[:4])==number]['publisher'].value_counts().index[0]
+            books.loc[books[books['isbn'].apply(lambda x: x[:4])==number].index,'publisher'] = right_publisher
+        except: 
+            pass
+
+    #카테고리
+    books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
+
+
+    category_df = pd.DataFrame(books['category'].value_counts()).reset_index()
+    category_df.columns = ['category','count']  
+
+    books['category_high'] = books['category'].copy()
+    books.loc[books[books['category']=='biography'].index, 'category_high'] = 'biography autobiography'
+    books.loc[books[books['category']=='autobiography'].index,'category_high'] = 'biography autobiography'
+
+    books.loc[books[books['category'].str.contains('history',na=False)].index,'category_high'] = 'history'
+
+    categories = ['garden','crafts','physics','adventure','music','fiction','nonfiction','science','science fiction','social','homicide',
+    'sociology','disease','religion','christian','philosophy','psycholog','mathemat','agricult','environmental',
+    'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
+    'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
+
+    for category in categories:
+        books.loc[books[books['category'].str.contains(category,na=False)].index,'category_high'] = category
+
+    category_high_df = pd.DataFrame(books['category_high'].value_counts()).reset_index()
+    category_high_df.columns = ['category','count']
+
+    # 5개 이하인 항목은 others로 묶어주도록 하겠습니다.
+    others_list = category_high_df[category_high_df['count']<5]['category'].values
+    books.loc[books[books['category_high'].isin(others_list)].index, 'category_high']='others'
+    # del books['category']
+    # books.rename(columns = {'category_high':'category'},inplace=True)
+
+
     # 인덱싱 처리된 데이터 조인
+    # isbn,book_title,book_author,year_of_publication,publisher,img_url,language,category,summary,img_path
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
@@ -222,6 +267,7 @@ def process_context_data(users, books, ratings1, ratings2):
     }
 
     return idx, train_df, test_df
+	
 
 
 def context_data_load(args):
