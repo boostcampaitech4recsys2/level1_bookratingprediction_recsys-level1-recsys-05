@@ -100,6 +100,16 @@ def main(args):
         predicts  = model.predict(data['test_dataloader'])
     else:
         pass
+    
+    ######################## PREDICT GET IN RANGE
+    def adjust_predict(y):
+        if y < 1.0:
+            return 1.0
+        elif y > 10.0:
+            return 10.0
+        return y
+    
+    predicts = list(map(adjust_predict, predicts))
 
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.MODEL} PREDICT ---------------')
@@ -113,6 +123,8 @@ def main(args):
     now_date = time.strftime('%Y%m%d', now)
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
+    print(rmse)
+    #submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
     submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
     
