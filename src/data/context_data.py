@@ -26,6 +26,152 @@ def process_context_data(users, books, ratings1, ratings2):
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
 
+
+
+    ######################### location 전처리
+    users['location_city'] = users['location_city'].str.strip()
+    users['location_state'] = users['location_state'].str.strip()
+    users['location_country'] = users['location_country'].str.strip()
+
+    users['location_city'] = users['location_city'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    users['location_state'] = users['location_state'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    users['location_country'] = users['location_country'].str.replace(r'[^a-zA-Z]', '', regex=True)
+
+    '''
+    location_country
+    '''
+    # null & na & universe & etc
+    null_repl = [
+        'universe', 'na', '', 'lava', 'petrolwarnation', 'space', 'lachineternelle',
+        'faraway', 'everywhereandanywhere', 'hereandthere', 'tdzimi', 'naontheroad',
+        'unknown'
+    ]
+    for keyword in null_repl:
+        users.loc[users['location_country'] == keyword, 'location_country'] = 'null'
+    users.loc[users['location_country'] == 'c', 'location_country'] = 'null'
+    # australia
+    australia_repl = [
+        'newsouthwales', 'queensland', 'tasmania', 'victoria', 'nsw'
+    ]
+    for keyword in australia_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'australia'
+    # italy
+    users.loc[users['location_country'].str.contains('ital'), 'location_country'] = 'italy'
+    users.loc[users['location_country'].str.contains('ferrara'), 'location_country'] = 'italy'
+    users.loc[users['location_country'].str.contains('veneziagiulia'), 'location_country'] = 'italy'
+    users.loc[users['location_country'].str.contains('ineurope'), 'location_country'] = 'italy'
+    # germany
+    users.loc[users['location_country'].str.contains('deut'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('germ'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('berlin'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('niedersachsen'), 'location_country'] = 'germany'
+    # united kingdom
+    uk_repls = [
+        'unitedkingdom', 'eng', 'king', 'wales', 'scotland', 'aberdeenshire', 'camden', 'unitedkindgonm',
+        'middlesex', 'nottinghamshire', 'westyorkshire', 'cambridgeshire', 'sthelena', 'northyorkshire',
+        'obviously'
+    ]
+    for keyword in uk_repls:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'united kingdom'
+    users.loc[users['location_country'] == 'uk', 'location_country'] = 'united kingdom'
+    # ireland
+    users.loc[users['location_country'].str.contains('countycork'), 'location_country'] = 'ireland'
+    users.loc[users['location_country'].str.contains('cocarlow'), 'location_country'] = 'ireland'
+    # france
+    users.loc[users['location_country'].str.contains('fran'), 'location_country'] = 'france'
+    users.loc[users['location_country'].str.contains('paris'), 'location_country'] = 'france'
+    # spain
+    spain_repl = [
+        'esp', 'catal', 'galiza', 'euskalherria', 'lleida', 'gipuzkoa', 'orense', 'pontevedra', 'almera',
+        'bergued', 'andalucia'
+    ]
+    for keyword in spain_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'spain'
+    # portugal
+    users.loc[users['location_country'].str.contains('oeiras'), 'location_country'] = 'portugal'
+    # belgium
+    users.loc[users['location_country'].str.contains('labelgique'), 'location_country'] = 'belgium'
+    # austria
+    users.loc[users['location_country'].str.contains('eu'), 'location_country'] = 'austria'
+    # swiss
+    users.loc[users['location_country'].str.contains('lasuisse'), 'location_country'] = 'switzerland'
+    # finland
+    users.loc[users['location_country'].str.contains('etelsuomi'), 'location_country'] = 'finland'
+    # usa
+    usa_repl = [
+        'unitedstaes', 'america', 'usa', 'state', 'sate', 'cali', 'dc', 'oregon', 'texas', 'florida',
+        'newhampshire', 'newmexico', 'newjersey', 'newyork', 'virginia', 'bermuda', 'illinois', 'michigan',
+        'arizona', 'indiana', 'minnesota', 'tennessee', 'dakota', 'connecticut', 'wisconsin', 'ohio',
+        'maryland', 'northcarolina', 'massachusetts', 'colorado', 'washington', 'maine', 'georgia', 'oklahoma',
+        'maracopa', 'districtofcolumbia', 'saintloius', 'orangeco', 'aroostook', 'arkansas', 'montana',
+        'rhodeisland', 'nevada', 'kern', 'fortbend', 'nebraska', 'usofa', 'alabama', 'csa', 'polk',
+        'alachua', 'austin', 'alaska', 'hawaii', 'worcester', 'iowa', 'cherokee', 'shelby', 'stthomasi',
+        'vanwert', 'kansas', 'idaho', 'tn', 'framingham', 'pender', 'ysa', 'arizona', 'morgan', 'rutherford'
+    ]
+    for keyword in usa_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'us', 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'ca', 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'il', 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'ua', 'location_country'] = 'usa'
+    # cananda
+    canada_repl = [
+        'cananda', 'british', 'newfoundland', 'newbrunswick', 'alberta', 'ontario', 'lkjlj', 'bc',
+        'novascotia', 'kcb', 'quebec', 'maricopa', 'travelling', 'vvh', 'saskatchewan'
+    ]
+    for keyword in canada_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'canada'
+    # new zealand
+    users.loc[users['location_country'] == 'nz', 'location_country'] = 'newzealand'
+    users.loc[users['location_country'].str.contains('otago'), 'location_country'] = 'newzealand'
+    users.loc[users['location_country'].str.contains('auckland'), 'location_country'] = 'newzealand'
+    # malaysia
+    users.loc[users['location_country'].str.contains('kedah'), 'location_country'] = 'malaysia'
+    # uae
+    users.loc[users['location_country'].str.contains('uae'), 'location_country'] = 'unitedarabemirates'
+    # kuwait
+    users.loc[users['location_country'].str.contains('quit'), 'location_country'] = 'kuwait'
+    # phillipines
+    users.loc[users['location_country'].str.contains('phill'), 'location_country'] = 'philippines'
+    users.loc[users['location_country'].str.contains('metromanila'), 'location_country'] = 'philippines'
+    # uruguay
+    users.loc[users['location_country'].str.contains('urugua'), 'location_country'] = 'uruguay'
+    # panama
+    users.loc[users['location_country'].str.contains('republicofpanama'), 'location_country'] = 'panama'
+    # trinidadandtobago
+    users.loc[users['location_country'].str.contains('westindies'), 'location_country'] = 'trinidadandtobago'
+    # guernsey
+    users.loc[users['location_country'].str.contains('alderney'), 'location_country'] = 'guernsey'
+    # japan
+    users.loc[users['location_country'].str.contains('okinawa'), 'location_country'] = 'japan'
+    # korea
+    users.loc[users['location_country'].str.contains('seoul'), 'location_country'] = 'southkorea'
+    # brazil
+    users.loc[users['location_country'].str.contains('disritofederal'), 'location_country'] = 'brazil'
+
+
+    '''
+    location_city
+    '''
+    # usa
+    usa_city_repl = [
+        'losang', 'seattle', 'sanf', 'sand', 'newyork', 'newark', 'newbedford'
+    ]
+    for keyword in usa_city_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'usa'
+    # canada
+    canada_city_repl = [
+        'calgary', 'vancouver',
+    ]
+    for keyword in canada_city_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'canada'
+    #########################
+
+    #########################
+    users = users.drop(['location_city', 'location_state'], axis=1)
+    #########################
+
+
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
 
     # 인덱싱 처리된 데이터 조인
@@ -34,15 +180,15 @@ def process_context_data(users, books, ratings1, ratings2):
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
 
     # 인덱싱 처리
-    loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
-    loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
+    # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
+    # loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
     loc_country2idx = {v:k for k,v in enumerate(context_df['location_country'].unique())}
 
-    train_df['location_city'] = train_df['location_city'].map(loc_city2idx)
-    train_df['location_state'] = train_df['location_state'].map(loc_state2idx)
+    # train_df['location_city'] = train_df['location_city'].map(loc_city2idx)
+    # train_df['location_state'] = train_df['location_state'].map(loc_state2idx)
     train_df['location_country'] = train_df['location_country'].map(loc_country2idx)
-    test_df['location_city'] = test_df['location_city'].map(loc_city2idx)
-    test_df['location_state'] = test_df['location_state'].map(loc_state2idx)
+    # test_df['location_city'] = test_df['location_city'].map(loc_city2idx)
+    # test_df['location_state'] = test_df['location_state'].map(loc_state2idx)
     test_df['location_country'] = test_df['location_country'].map(loc_country2idx)
 
     train_df['age'] = train_df['age'].fillna(int(train_df['age'].mean()))
@@ -66,8 +212,8 @@ def process_context_data(users, books, ratings1, ratings2):
     test_df['book_author'] = test_df['book_author'].map(author2idx)
 
     idx = {
-        "loc_city2idx":loc_city2idx,
-        "loc_state2idx":loc_state2idx,
+        # "loc_city2idx":loc_city2idx,
+        # "loc_state2idx":loc_state2idx,
         "loc_country2idx":loc_country2idx,
         "category2idx":category2idx,
         "publisher2idx":publisher2idx,
@@ -107,8 +253,13 @@ def context_data_load(args):
     books['isbn'] = books['isbn'].map(isbn2idx)
 
     idx, context_train, context_test = process_context_data(users, books, train, test)
+    '''
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                            len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+    '''
+    field_dims = np.array([len(user2idx), len(isbn2idx),
+                            6, len(idx['loc_country2idx']),
                             len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
     data = {

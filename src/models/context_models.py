@@ -10,7 +10,10 @@ import torch.optim as optim
 from ._models import _FactorizationMachineModel, _FieldAwareFactorizationMachineModel
 from ._models import rmse, RMSELoss
 
+######################## IMPORT WANDB MODULE
 import wandb
+########################
+
 
 class FactorizationMachineModel:
 
@@ -159,6 +162,15 @@ class FieldAwareFactorizationMachineModel:
 
     def train(self):
       # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
+        
+        ######################## WANDB INIT
+        run = wandb.init(
+            project="schini-FFM-test",
+            entity="boostcamp_l1_recsys05",
+            name="FFM-rmse",
+        )
+        ########################
+
         for epoch in range(self.epochs):
             self.model.train()
             total_loss = 0
@@ -176,8 +188,15 @@ class FieldAwareFactorizationMachineModel:
                     total_loss = 0
 
             rmse_score = self.predict_train()
+            ######################## WANDB RUN
+            wandb.log({'loss': total_loss, 'RMSE': rmse_score}, step=epoch)
+            ########################
             print('epoch:', epoch, 'validation: rmse:', rmse_score)
-        return rmse_score
+        
+        ######################## WANDB FINISH
+        run.finish()
+        ########################
+
 
     def predict_train(self):
         self.model.eval()
