@@ -1,3 +1,4 @@
+import re
 import numpy as np
 import pandas as pd
 from sklearn.model_selection import train_test_split
@@ -25,37 +26,202 @@ def process_context_data(users, books, ratings1, ratings2):
     users['location_state'] = users['location'].apply(lambda x: x.split(',')[1])
     users['location_country'] = users['location'].apply(lambda x: x.split(',')[2])
     users = users.drop(['location'], axis=1)
-
+    
+    ######################### location 전처리
+    users['location_city'] = users['location_city'].str.strip()
+    users['location_state'] = users['location_state'].str.strip()
+    users['location_country'] = users['location_country'].str.strip()
+    users['location_city'] = users['location_city'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    users['location_state'] = users['location_state'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    users['location_country'] = users['location_country'].str.replace(r'[^a-zA-Z]', '', regex=True)
+    '''
+    location_country
+    '''
+    # null & na & universe & etc
+    null_repl = [
+        'universe', 'na', '', 'lava', 'petrolwarnation', 'space', 'lachineternelle',
+        'faraway', 'everywhereandanywhere', 'hereandthere', 'tdzimi', 'naontheroad',
+        'unknown'
+    ]
+    for keyword in null_repl:
+        users.loc[users['location_country'] == keyword, 'location_country'] = 'null'
+    users.loc[users['location_country'] == 'c', 'location_country'] = 'null'
+    # australia
+    australia_repl = [
+        'newsouthwales', 'queensland', 'tasmania', 'victoria', 'nsw'
+    ]
+    for keyword in australia_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'australia'
+    # italy
+    users.loc[users['location_country'].str.contains('ital'), 'location_country'] = 'italy'
+    users.loc[users['location_country'].str.contains('ferrara'), 'location_country'] = 'italy'
+    users.loc[users['location_country'].str.contains('veneziagiulia'), 'location_country'] = 'italy'
+    users.loc[users['location_country'].str.contains('ineurope'), 'location_country'] = 'italy'
+    # germany
+    users.loc[users['location_country'].str.contains('deut'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('germ'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('berlin'), 'location_country'] = 'germany'
+    users.loc[users['location_country'].str.contains('niedersachsen'), 'location_country'] = 'germany'
+    # united kingdom
+    uk_repls = [
+        'unitedkingdom', 'eng', 'king', 'wales', 'scotland', 'aberdeenshire', 'camden', 'unitedkindgonm',
+        'middlesex', 'nottinghamshire', 'westyorkshire', 'cambridgeshire', 'sthelena', 'northyorkshire',
+        'obviously'
+    ]
+    for keyword in uk_repls:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'united kingdom'
+    users.loc[users['location_country'] == 'uk', 'location_country'] = 'united kingdom'
+    # ireland
+    users.loc[users['location_country'].str.contains('countycork'), 'location_country'] = 'ireland'
+    users.loc[users['location_country'].str.contains('cocarlow'), 'location_country'] = 'ireland'
+    # france
+    users.loc[users['location_country'].str.contains('fran'), 'location_country'] = 'france'
+    users.loc[users['location_country'].str.contains('paris'), 'location_country'] = 'france'
+    # spain
+    spain_repl = [
+        'esp', 'catal', 'galiza', 'euskalherria', 'lleida', 'gipuzkoa', 'orense', 'pontevedra', 'almera',
+        'bergued', 'andalucia'
+    ]
+    for keyword in spain_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'spain'
+    # portugal
+    users.loc[users['location_country'].str.contains('oeiras'), 'location_country'] = 'portugal'
+    # belgium
+    users.loc[users['location_country'].str.contains('labelgique'), 'location_country'] = 'belgium'
+    # austria
+    users.loc[users['location_country'].str.contains('eu'), 'location_country'] = 'austria'
+    # swiss
+    users.loc[users['location_country'].str.contains('lasuisse'), 'location_country'] = 'switzerland'
+    # finland
+    users.loc[users['location_country'].str.contains('etelsuomi'), 'location_country'] = 'finland'
+    # usa
+    usa_repl = [
+        'unitedstaes', 'america', 'usa', 'state', 'sate', 'cali', 'dc', 'oregon', 'texas', 'florida',
+        'newhampshire', 'newmexico', 'newjersey', 'newyork', 'virginia', 'bermuda', 'illinois', 'michigan',
+        'arizona', 'indiana', 'minnesota', 'tennessee', 'dakota', 'connecticut', 'wisconsin', 'ohio',
+        'maryland', 'northcarolina', 'massachusetts', 'colorado', 'washington', 'maine', 'georgia', 'oklahoma',
+        'maracopa', 'districtofcolumbia', 'saintloius', 'orangeco', 'aroostook', 'arkansas', 'montana',
+        'rhodeisland', 'nevada', 'kern', 'fortbend', 'nebraska', 'usofa', 'alabama', 'csa', 'polk',
+        'alachua', 'austin', 'alaska', 'hawaii', 'worcester', 'iowa', 'cherokee', 'shelby', 'stthomasi',
+        'vanwert', 'kansas', 'idaho', 'tn', 'framingham', 'pender', 'ysa', 'arizona', 'morgan', 'rutherford'
+    ]
+    for keyword in usa_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'us', 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'ca', 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'il', 'location_country'] = 'usa'
+    users.loc[users['location_country'] == 'ua', 'location_country'] = 'usa'
+    # cananda
+    canada_repl = [
+        'cananda', 'british', 'newfoundland', 'newbrunswick', 'alberta', 'ontario', 'lkjlj', 'bc',
+        'novascotia', 'kcb', 'quebec', 'maricopa', 'travelling', 'vvh', 'saskatchewan'
+    ]
+    for keyword in canada_repl:
+        users.loc[users['location_country'].str.contains(keyword), 'location_country'] = 'canada'
+    # new zealand
+    users.loc[users['location_country'] == 'nz', 'location_country'] = 'newzealand'
+    users.loc[users['location_country'].str.contains('otago'), 'location_country'] = 'newzealand'
+    users.loc[users['location_country'].str.contains('auckland'), 'location_country'] = 'newzealand'
+    # malaysia
+    users.loc[users['location_country'].str.contains('kedah'), 'location_country'] = 'malaysia'
+    # uae
+    users.loc[users['location_country'].str.contains('uae'), 'location_country'] = 'unitedarabemirates'
+    # kuwait
+    users.loc[users['location_country'].str.contains('quit'), 'location_country'] = 'kuwait'
+    # phillipines
+    users.loc[users['location_country'].str.contains('phill'), 'location_country'] = 'philippines'
+    users.loc[users['location_country'].str.contains('metromanila'), 'location_country'] = 'philippines'
+    # uruguay
+    users.loc[users['location_country'].str.contains('urugua'), 'location_country'] = 'uruguay'
+    # panama
+    users.loc[users['location_country'].str.contains('republicofpanama'), 'location_country'] = 'panama'
+    # trinidadandtobago
+    users.loc[users['location_country'].str.contains('westindies'), 'location_country'] = 'trinidadandtobago'
+    # guernsey
+    users.loc[users['location_country'].str.contains('alderney'), 'location_country'] = 'guernsey'
+    # japan
+    users.loc[users['location_country'].str.contains('okinawa'), 'location_country'] = 'japan'
+    # korea
+    users.loc[users['location_country'].str.contains('seoul'), 'location_country'] = 'southkorea'
+    # brazil
+    users.loc[users['location_country'].str.contains('disritofederal'), 'location_country'] = 'brazil'
+    '''
+    location_city
+    '''
+    # usa
+    usa_city_repl = [
+        'losang', 'seattle', 'sanf', 'sand', 'newyork', 'newark', 'newbedford'
+    ]
+    for keyword in usa_city_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'usa'
+    # canada
+    canada_city_repl = [
+        'calgary', 'vancouver',
+    ]
+    for keyword in canada_city_repl:
+        users.loc[(users['location_country'] == 'null') & (users['location_city'].str.contains(keyword)), 'location_country'] = 'canada'
+    #########################
+    #########################
+    users = users.drop(['location_city', 'location_state'], axis=1)
+    #########################
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
-
+    #출판사
+    publisher_dict=(books['publisher'].value_counts()).to_dict()
+    publisher_count_df= pd.DataFrame(list(publisher_dict.items()),columns = ['publisher','count'])
+    publisher_count_df = publisher_count_df.sort_values(by=['count'], ascending = False)
+    modify_list = publisher_count_df[publisher_count_df['count']>1].publisher.values
+    for publisher in modify_list:
+        try:
+            number = books[books['publisher']==publisher]['isbn'].apply(lambda x: x[:4]).value_counts().index[0]
+            right_publisher = books[books['isbn'].apply(lambda x: x[:4])==number]['publisher'].value_counts().index[0]
+            books.loc[books[books['isbn'].apply(lambda x: x[:4])==number].index,'publisher'] = right_publisher
+        except: 
+            pass
+    #카테고리
+    books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
+    category_df = pd.DataFrame(books['category'].value_counts()).reset_index()
+    category_df.columns = ['category','count']  
+    books['category_high'] = books['category'].copy()
+    books.loc[books[books['category']=='biography'].index, 'category_high'] = 'biography autobiography'
+    books.loc[books[books['category']=='autobiography'].index,'category_high'] = 'biography autobiography'
+    books.loc[books[books['category'].str.contains('history',na=False)].index,'category_high'] = 'history'
+    categories = ['garden','crafts','physics','adventure','music','fiction','nonfiction','science','science fiction','social','homicide',
+    'sociology','disease','religion','christian','philosophy','psycholog','mathemat','agricult','environmental',
+    'business','poetry','drama','literary','travel','motion picture','children','cook','literature','electronic',
+    'humor','animal','bird','photograph','computer','house','ecology','family','architect','camp','criminal','language','india']
+    for category in categories:
+        books.loc[books[books['category'].str.contains(category,na=False)].index,'category_high'] = category
+    category_high_df = pd.DataFrame(books['category_high'].value_counts()).reset_index()
+    category_high_df.columns = ['category','count']
+    # 5개 이하인 항목은 others로 묶어주도록 하겠습니다.
+    others_list = category_high_df[category_high_df['count']<5]['category'].values
+    books.loc[books[books['category_high'].isin(others_list)].index, 'category_high']='others'
+    # del books['category']
+    # books.rename(columns = {'category_high':'category'},inplace=True)
     # 인덱싱 처리된 데이터 조인
+    # isbn,book_title,book_author,year_of_publication,publisher,img_url,language,category,summary,img_path
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-
     # 인덱싱 처리
-    loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
-    loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
+    # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
+    # loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
     loc_country2idx = {v:k for k,v in enumerate(context_df['location_country'].unique())}
-
-    train_df['location_city'] = train_df['location_city'].map(loc_city2idx)
-    train_df['location_state'] = train_df['location_state'].map(loc_state2idx)
+    # train_df['location_city'] = train_df['location_city'].map(loc_city2idx)
+    # train_df['location_state'] = train_df['location_state'].map(loc_state2idx)
     train_df['location_country'] = train_df['location_country'].map(loc_country2idx)
-    test_df['location_city'] = test_df['location_city'].map(loc_city2idx)
-    test_df['location_state'] = test_df['location_state'].map(loc_state2idx)
+    # test_df['location_city'] = test_df['location_city'].map(loc_city2idx)
+    # test_df['location_state'] = test_df['location_state'].map(loc_state2idx)
     test_df['location_country'] = test_df['location_country'].map(loc_country2idx)
-
     train_df['age'] = train_df['age'].fillna(int(train_df['age'].mean()))
     train_df['age'] = train_df['age'].apply(age_map)
     test_df['age'] = test_df['age'].fillna(int(test_df['age'].mean()))
     test_df['age'] = test_df['age'].apply(age_map)
-
     # book 파트 인덱싱
     category2idx = {v:k for k,v in enumerate(context_df['category'].unique())}
     publisher2idx = {v:k for k,v in enumerate(context_df['publisher'].unique())}
     language2idx = {v:k for k,v in enumerate(context_df['language'].unique())}
     author2idx = {v:k for k,v in enumerate(context_df['book_author'].unique())}
-
     train_df['category'] = train_df['category'].map(category2idx)
     train_df['publisher'] = train_df['publisher'].map(publisher2idx)
     train_df['language'] = train_df['language'].map(language2idx)
@@ -64,18 +230,17 @@ def process_context_data(users, books, ratings1, ratings2):
     test_df['publisher'] = test_df['publisher'].map(publisher2idx)
     test_df['language'] = test_df['language'].map(language2idx)
     test_df['book_author'] = test_df['book_author'].map(author2idx)
-
     idx = {
-        "loc_city2idx":loc_city2idx,
-        "loc_state2idx":loc_state2idx,
+        # "loc_city2idx":loc_city2idx,
+        # "loc_state2idx":loc_state2idx,
         "loc_country2idx":loc_country2idx,
         "category2idx":category2idx,
         "publisher2idx":publisher2idx,
         "language2idx":language2idx,
         "author2idx":author2idx,
     }
-
     return idx, train_df, test_df
+	
 
 
 def context_data_load(args):
@@ -107,8 +272,13 @@ def context_data_load(args):
     books['isbn'] = books['isbn'].map(isbn2idx)
 
     idx, context_train, context_test = process_context_data(users, books, train, test)
+    '''
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
+                            len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+    '''
+    field_dims = np.array([len(user2idx), len(isbn2idx),
+                            6, len(idx['loc_country2idx']),
                             len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
     data = {
@@ -126,17 +296,39 @@ def context_data_load(args):
 
 
     return data
+    
+# def context_data_split(args, data):
+#     X_train, X_valid, y_train, y_valid = train_test_split(
+#                                                         data['train'].drop(['rating'], axis=1),
+#                                                         data['train']['rating'],
+#                                                         test_size=args.TEST_SIZE,
+#                                                         random_state=args.SEED,
+#                                                         shuffle=True
+#                                                         )
+#     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+#     return data
 
 
 def context_data_split(args, data):
-    X_train, X_valid, y_train, y_valid = train_test_split(
-                                                        data['train'].drop(['rating'], axis=1),
-                                                        data['train']['rating'],
-                                                        test_size=args.TEST_SIZE,
-                                                        random_state=args.SEED,
-                                                        shuffle=True
-                                                        )
-    data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+    count=data['train'].groupby("user_id").size()
+    dfcount = pd.DataFrame(count, columns=["count"])
+    data['train']=data['train'].merge(dfcount,on="user_id")
+    data['train']=data['train'][1::]
+    alrtrain = data['train'][data['train']["count"]!=1].drop(['count'],axis=1)
+    newtrain1 = data['train'][data['train']["count"]==1].drop(['count'],axis=1)
+
+    alr_train, alr_valid, alry_train, alry_valid = train_test_split(
+                                                    alrtrain.drop(['rating'], axis=1),
+                                                    alrtrain['rating'],
+                                                    test_size = 0.11,
+                                                    random_state=42, # args.SEED
+                                                    shuffle=True
+                                                    )
+
+
+    data['X_train'], data['y_train'],  = alr_train, alry_train
+    data['X_valid'] = pd.concat([newtrain1.drop(['rating'], axis=1),alr_valid])
+    data['y_valid'] = pd.concat([newtrain1['rating'],alry_valid])
     return data
 
 def context_data_loader(args, data):

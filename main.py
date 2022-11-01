@@ -1,6 +1,7 @@
 import time
 import argparse
 import pandas as pd
+import wandb
 
 from src import seed_everything
 
@@ -16,7 +17,51 @@ from src import DeepCoNN
 
 
 def main(args):
+    """
+    wandb.init(
+        project="minju-test", 
+        entity="boostcamp_l1_recsys05",
+        name=f"experiment_{args.MODEL}", 
+        # Track hyperparameters and run metadata
+        config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR
+            })"""
     seed_everything(args.SEED)
+
+    ############## WANDB START
+    
+    wandb.init(
+        project="book_recomendation", 
+        entity="boostcamp_l1_recsys05",
+        name=f"experiment_{args.MODEL}", 
+        # Track hyperparameters and run metadata
+        config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR
+            })
+        
+    
+    """
+    sweep_configuration = {
+        'method': 'bayes',
+        'name': 'sweep',
+        'metric': {'goal': 'minimize', 'name': 'rmse'}, 
+        'parameters':{
+            'batch_size': {'max': 2048, 'min': 512},
+            'epochs': {'max': 20, 'min': 5},
+            'lr': {'max': 0.002, 'min': 0.0005 }
+            }}   """
+    sweep_configuration = {
+        'method': 'bayes',
+        'name': 'sweep',
+        'metric': {'goal': 'minimize', 'name': 'rmse'}, 
+        'parameters':{
+            'epochs': {'max': 20, 'min': 5},
+            'lr': {'max': 0.002, 'min': 0.0005 }
+            }}
 
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
@@ -72,9 +117,12 @@ def main(args):
     else:
         pass
 
+    wandb.config.update(args)
+    # wandb.watch(model)
+
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
-    model.train()
+    rmse = model.train()
 
     ######################## INFERENCE
     print(f'--------------- {args.MODEL} PREDICT ---------------')
@@ -86,6 +134,16 @@ def main(args):
         predicts  = model.predict(data['test_dataloader'])
     else:
         pass
+    
+    ######################## PREDICT GET IN RANGE
+    def adjust_predict(y):
+        if y < 1.0:
+            return 1.0
+        elif y > 10.0:
+            return 10.0
+        return y
+    
+    predicts = list(map(adjust_predict, predicts))
 
     ######################## SAVE PREDICT
     print(f'--------------- SAVE {args.MODEL} PREDICT ---------------')
@@ -94,13 +152,29 @@ def main(args):
         submission['rating'] = predicts
     else:
         pass
+    train1 = pd.read_csv('./data/train_ratings.csv')
+
+    count=train1.groupby("user_id").size()
+    dfcount = pd.DataFrame(count, columns=["count"])
+    submission=pd.merge(submission,dfcount, how='left', on='user_id')
+    submission['count'] = submission['count'].fillna(0)
+    submission.set_index("user_id",inplace = True)
+
+    for row in submission.itertuples():
+        if row[3] == 0 :
+            submission.at[row[0],"rating"] = 7
+
+    submission = submission.reset_index()
+    submission = submission.drop(['count'], axis=1)
+
 
     now = time.localtime()
     now_date = time.strftime('%Y%m%d', now)
     now_hour = time.strftime('%X', now)
     save_time = now_date + '_' + now_hour.replace(':', '')
-    submission.to_csv('submit/{}_{}.csv'.format(save_time, args.MODEL), index=False)
+    submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
+    
 
 
 if __name__ == "__main__":
