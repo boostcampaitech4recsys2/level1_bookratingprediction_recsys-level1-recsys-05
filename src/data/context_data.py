@@ -394,10 +394,13 @@ def process_context_data(users, books, ratings1, ratings2):
     # philippines
     users.loc[users['user_id'] == 131023, 'location_country'] = 'philippines'
     #########################
+
     #########################
     users = users.drop(['location_city', 'location_state'], axis=1)
     #########################
+
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
+
     #출판사
     publisher_dict=(books['publisher'].value_counts()).to_dict()
     publisher_count_df= pd.DataFrame(list(publisher_dict.items()),columns = ['publisher','count'])
@@ -410,6 +413,7 @@ def process_context_data(users, books, ratings1, ratings2):
             books.loc[books[books['isbn'].apply(lambda x: x[:4])==number].index,'publisher'] = right_publisher
         except: 
             pass
+    
     #카테고리
     books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
     category_df = pd.DataFrame(books['category'].value_counts()).reset_index()
