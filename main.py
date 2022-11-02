@@ -152,6 +152,15 @@ def main(args):
         submission['rating'] = predicts
     else:
         pass
+
+    #기존 파일 저장 방식
+    now = time.localtime()
+    now_date = time.strftime('%Y%m%d', now)
+    now_hour = time.strftime('%X', now)
+    save_time = now_date + '_' + now_hour.replace(':', '')
+    submission.to_csv('submit/{}_{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), 'origin'), index=False)
+
+    #rule based 적용 저장
     train1 = pd.read_csv('./data/train_ratings.csv')
 
     count=train1.groupby("user_id").size()

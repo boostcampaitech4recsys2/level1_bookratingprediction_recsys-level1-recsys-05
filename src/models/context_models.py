@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.optim as optim
 
 from torch.utils.data import SubsetRandomSampler
-from sklearn.model_selection import KFold
+from sklearn.model_selection import StratifiedKFold
 from torch.utils.data import DataLoader, Dataset
 
 from ._models import _FactorizationMachineModel, _FieldAwareFactorizationMachineModel
@@ -45,15 +45,15 @@ class FactorizationMachineModel:
         
     def train(self):
         # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
-        kfold = KFold(n_splits = 5, shuffle=True)
+        kfold = StratifiedKFold(n_splits = 5)
         validation_loss = []
         total_mean = []
         
         for fold, (train_idx, val_idx) in enumerate(kfold.split(self.train_dataset)):
-            print(train_idx,val_idx)
+            # print(train_idx,val_idx)
             train_subsampler = SubsetRandomSampler(train_idx)
             val_subsampler = SubsetRandomSampler(val_idx)
-            print(train_subsampler, val_subsampler)
+            # print(train_subsampler, val_subsampler)
             train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler = train_subsampler)
             valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler = val_subsampler)
 
