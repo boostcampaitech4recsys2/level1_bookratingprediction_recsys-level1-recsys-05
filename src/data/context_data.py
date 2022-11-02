@@ -579,4 +579,4 @@ def context_data_loader(args, data):
 
     data['train_dataloader'], data['valid_dataloader'], data['test_dataloader'] = train_dataloader, valid_dataloader, test_dataloader
 
-    return data
+    return train_dataset, valid_dataset, data

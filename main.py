@@ -82,7 +82,7 @@ def main(args):
     print(f'--------------- {args.MODEL} Train/Valid Split ---------------')
     if args.MODEL in ('FM', 'FFM'):
         data = context_data_split(args, data)
-        data = context_data_loader(args, data)
+        train_dataset, valid_dataset, data = context_data_loader(args, data)
 
     elif args.MODEL in ('NCF', 'WDN', 'DCN'):
         data = dl_data_split(args, data)
@@ -101,7 +101,7 @@ def main(args):
     ######################## Model
     print(f'--------------- INIT {args.MODEL} ---------------')
     if args.MODEL=='FM':
-        model = FactorizationMachineModel(args, data)
+        model = FactorizationMachineModel(args, train_dataset, valid_dataset, data)
     elif args.MODEL=='FFM':
         model = FieldAwareFactorizationMachineModel(args, data)
     elif args.MODEL=='NCF':
