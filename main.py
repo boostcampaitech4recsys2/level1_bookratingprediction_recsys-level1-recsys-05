@@ -32,7 +32,7 @@ def main(args):
     seed_everything(args.SEED)
 
     ############## WANDB START
-    
+    """
     wandb.init(
         project="seongjae_tmap", 
         entity="boostcamp_l1_recsys05",
@@ -41,10 +41,10 @@ def main(args):
         config={
             "epochs": args.EPOCHS,
             "batch_size": args.BATCH_SIZE,
-            "lr": args.LR
+            "lr": args.LR,
             "embed_dim": 16
             })
-        
+        """
     
     """
     sweep_configuration = {
@@ -57,14 +57,19 @@ def main(args):
             'lr': {'max': 0.002, 'min': 0.0005 }
             }}   """
     sweep_configuration = {
-        'method': 'bayes',
-        'name': 'sweep',
-        'metric': {'goal': 'minimize', 'name': 'rmse'}, 
-        'parameters':{
-            'epochs': {'max': 20, 'min': 5},
-            'lr': {'max': 0.002, 'min': 0.0005 }
-            }}
-
+    'method': 'bayes',
+    'name': 'sweep',
+    'metric': {'goal': 'minimize', 'name': 'rmse'}, 
+    'parameters':{
+        'emb_dim':{'max': 32, 'min': 8  }
+        }}
+    config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR,
+            "emb_dim": 16
+            }
+    
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -99,6 +104,10 @@ def main(args):
         data = text_data_loader(args, data)
     else:
         pass
+    
+
+
+
 
     ######################## Model
     print(f'--------------- INIT {args.MODEL} ---------------')
@@ -177,7 +186,6 @@ def main(args):
     submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
     
-
 
 if __name__ == "__main__":
 
