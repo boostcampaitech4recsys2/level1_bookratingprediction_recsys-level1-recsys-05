@@ -69,7 +69,13 @@ def main(args):
             "lr": args.LR,
             "emb_dim": 16
             }
-    
+    print(args.NCF_MLP_DIMS)
+    print(type(args.NCF_MLP_DIMS))
+    print(args.NCF_MLP_DIMS[0])
+    tmp = (2,2)
+    print(tmp)
+    print(type(tmp))
+    input()
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
