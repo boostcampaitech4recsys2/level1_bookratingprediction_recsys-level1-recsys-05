@@ -1,0 +1,15 @@
+program: model.train
+method: bayes
+metric:
+  name: rmse
+  goal: minimize
+parameters:
+  learning_rate:
+    min: 0.001
+    max: 0.1
+  optimizer:
+    values: ["adam", "sgd"]
+  epoch:
+    min: 5
+    max: 20
+  

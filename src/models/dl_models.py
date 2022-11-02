@@ -184,6 +184,7 @@ class DeepCrossNetworkModel:
 
     def train(self):
       # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
+        
         for epoch in range(self.epochs):
             self.model.train()
             total_loss = 0

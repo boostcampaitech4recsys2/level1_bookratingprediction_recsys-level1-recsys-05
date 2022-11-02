@@ -1,19 +1,20 @@
-import time
 import argparse
+import time
+
 import pandas as pd
+import yaml
+
 import wandb
-
-from src import seed_everything
-
-from src.data import context_data_load, context_data_split, context_data_loader
-from src.data import dl_data_load, dl_data_split, dl_data_loader
-from src.data import image_data_load, image_data_split, image_data_loader
-from src.data import text_data_load, text_data_split, text_data_loader
-
-from src import FactorizationMachineModel, FieldAwareFactorizationMachineModel
-from src import NeuralCollaborativeFiltering, WideAndDeepModel, DeepCrossNetworkModel
-from src import CNN_FM
-from src import DeepCoNN
+from src import (CNN_FM, DeepCoNN, DeepCrossNetworkModel,
+                 FactorizationMachineModel,
+                 FieldAwareFactorizationMachineModel,
+                 NeuralCollaborativeFiltering, WideAndDeepModel,
+                 seed_everything)
+from src.data import (context_data_load, context_data_loader,
+                      context_data_split, dl_data_load, dl_data_loader,
+                      dl_data_split, image_data_load, image_data_loader,
+                      image_data_split, text_data_load, text_data_loader,
+                      text_data_split)
 
 
 def main(args):
@@ -31,18 +32,19 @@ def main(args):
     seed_everything(args.SEED)
 
     ############## WANDB START
-    
+    """
     wandb.init(
-        project="book_recomendation", 
+        project="seongjae_tmap", 
         entity="boostcamp_l1_recsys05",
         name=f"experiment_{args.MODEL}", 
         # Track hyperparameters and run metadata
         config={
             "epochs": args.EPOCHS,
             "batch_size": args.BATCH_SIZE,
-            "lr": args.LR
+            "lr": args.LR,
+            "embed_dim": 16
             })
-        
+        """
     
     """
     sweep_configuration = {
@@ -55,14 +57,25 @@ def main(args):
             'lr': {'max': 0.002, 'min': 0.0005 }
             }}   """
     sweep_configuration = {
-        'method': 'bayes',
-        'name': 'sweep',
-        'metric': {'goal': 'minimize', 'name': 'rmse'}, 
-        'parameters':{
-            'epochs': {'max': 20, 'min': 5},
-            'lr': {'max': 0.002, 'min': 0.0005 }
-            }}
-
+    'method': 'bayes',
+    'name': 'sweep',
+    'metric': {'goal': 'minimize', 'name': 'rmse'}, 
+    'parameters':{
+        'emb_dim':{'max': 32, 'min': 8  }
+        }}
+    config={
+            "epochs": args.EPOCHS,
+            "batch_size": args.BATCH_SIZE,
+            "lr": args.LR,
+            "emb_dim": 16
+            }
+    print(args.NCF_MLP_DIMS)
+    print(type(args.NCF_MLP_DIMS))
+    print(args.NCF_MLP_DIMS[0])
+    tmp = (2,2)
+    print(tmp)
+    print(type(tmp))
+    input()
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -97,6 +110,10 @@ def main(args):
         data = text_data_loader(args, data)
     else:
         pass
+    
+
+
+
 
     ######################## Model
     print(f'--------------- INIT {args.MODEL} ---------------')
@@ -123,7 +140,7 @@ def main(args):
     ######################## TRAIN
     print(f'--------------- {args.MODEL} TRAINING ---------------')
     rmse = model.train()
-
+    
     ######################## INFERENCE
     print(f'--------------- {args.MODEL} PREDICT ---------------')
     if args.MODEL in ('FM', 'FFM', 'NCF', 'WDN', 'DCN'):
@@ -175,7 +192,6 @@ def main(args):
     submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
 
     
-
 
 if __name__ == "__main__":
 
@@ -235,6 +251,9 @@ if __name__ == "__main__":
     arg('--DEEPCONN_KERNEL_SIZE', type=int, default=3, help='DEEP_CONN에서 1D conv의 kernel 크기를 조정할 수 있습니다.')
     arg('--DEEPCONN_WORD_DIM', type=int, default=768, help='DEEP_CONN에서 1D conv의 입력 크기를 조정할 수 있습니다.')
     arg('--DEEPCONN_OUT_DIM', type=int, default=32, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
-
+    
+    ############### WANDB
+    arg('--WANDB_SWEEP', type=bool, default=False, help='WANDB_SWEEP을 돌렸을 떄 TRUE 로 설정')
+    
     args = parser.parse_args()
     main(args)

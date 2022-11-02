@@ -31,6 +31,7 @@ class FactorizationMachineModel:
         self.learning_rate = args.LR
         self.weight_decay = args.WEIGHT_DECAY
         self.log_interval = 100
+        self.sweep = args.WANDB_SWEEP
 
         self.device = args.DEVICE
 
@@ -40,6 +41,12 @@ class FactorizationMachineModel:
 
     def train(self):
       # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
+        ########WANDB
+        if self.sweep == True:
+            wandb.init()
+            self.epochs = wandb.config.epochs
+            self.learning_rate = wandb.config.lr
+
         for epoch in range(self.epochs):
             self.model.train()
             total_loss = 0
@@ -120,7 +127,7 @@ class FieldAwareFactorizationMachineModel:
             name="FFM-rmse",
         )
         ########################
-
+        
         for epoch in range(self.epochs):
             self.model.train()
             total_loss = 0
