@@ -492,6 +492,56 @@ def process_context_data(users, books, ratings1, ratings2):
     train_df = train_df.loc[train_df['drop_zeros'] == 1].drop(['drop_zeros'], axis=1)
     #########################
 
+    ######################### language 변수 user_id 별로 채우기
+    # train_df
+    lang_by_uid = pd.DataFrame(train_df.groupby('user_id')['language'].agg(pd.Series.mode))
+    lang_by_uid = lang_by_uid.reset_index()
+    lang_by_uid.columns = ['user_id', 'lang_by_uid']
+    train_df = train_df.merge(lang_by_uid, on='user_id', how='left')
+
+    def fill_lang(lang):
+        if isinstance(lang, str):
+            return lang
+        elif not len(lang):
+            return 'en'
+        else:
+            return lang[0]
+
+    train_df.loc[train_df['language'].isna(), 'language'] =\
+        train_df.loc[train_df['language'].isna(), 'lang_by_uid'].apply(fill_lang)
+    train_df = train_df.drop(['lang_by_uid'], axis=1)
+
+    # test_df
+    lang_by_uid = pd.DataFrame(test_df.groupby('user_id')['language'].agg(pd.Series.mode))
+    lang_by_uid = lang_by_uid.reset_index()
+    lang_by_uid.columns = ['user_id', 'lang_by_uid']
+    test_df = test_df.merge(lang_by_uid, on='user_id', how='left')
+
+    def fill_lang(lang):
+        if isinstance(lang, str):
+            return lang
+        elif not len(lang):
+            return 'en'
+        else:
+            return lang[0]
+
+    test_df.loc[test_df['language'].isna(), 'language'] =\
+        test_df.loc[test_df['language'].isna(), 'lang_by_uid'].apply(fill_lang)
+    test_df = test_df.drop(['lang_by_uid'], axis=1)
+    #########################
+
+    # sparse language 데이터에서 제거
+    lang_cnt_dict = train_df.language.value_counts().to_dict()
+    lang_n = 1
+
+    def elim_sparse_lang(lang):
+        if lang_cnt_dict[lang] <= lang_n:
+            return 0
+        return 1
+
+    train_df['elim_lang'] = train_df['language'].apply(elim_sparse_lang)
+    train_df = train_df.loc[train_df['elim_lang'] == 1].drop(['elim_lang'], axis=1)
+    #########################
 
     # 인덱싱 처리
     # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
