@@ -443,7 +443,36 @@ def process_context_data(users, books, ratings1, ratings2):
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'language', 'book_title']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
+
+
+    ######################### age 변수 category 별 평균으로 전처리
+    cat_age_dict = train_df.groupby('category').mean()['age'].to_dict()
     
+    def fill_age(cat):
+        return cat_age_dict[cat]
+
+    train_df.loc[(train_df['age'].isna()) & (train_df['category'].notna()), 'age'] =\
+        train_df.loc[(train_df['age'].isna()) & (train_df['category'].notna()), 'category'].apply(fill_age)
+
+
+    ######################### data 수가 n개 이하인 나라 추출
+    cnty_n = 3
+    cnty_val_cnt = pd.DataFrame(train_df['location_country'].value_counts())
+    cnty_val_cnt.loc[cnty_val_cnt['location_country'] <= cnty_n]
+    countries_to_empty_set = set(cnty_val_cnt.loc[cnty_val_cnt['location_country'] <= 2].index)
+
+    ######################### 해당 나라들 empty로 때려박음
+    def one_frq_cnty_to_ety(cnty):
+        if cnty in countries_to_empty_set:
+            return 'empty'
+        return cnty
+    
+    train_df['location_country'] = train_df['location_country'].apply(one_frq_cnty_to_ety)
+    test_df['location_country'] = test_df['location_country'].apply(one_frq_cnty_to_ety)
+    test_df.loc[test_df['location_country'].isna(), 'location_country'] = 'empty'
+    #########################
+
+
     # 인덱싱 처리
     # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
     # loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
