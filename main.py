@@ -82,7 +82,7 @@ def main(args):
     print(f'--------------- {args.MODEL} Train/Valid Split ---------------')
     if args.MODEL in ('FM', 'FFM'):
         data = context_data_split(args, data)
-        data = context_data_loader(args, data)
+        train_dataset, valid_dataset, data = context_data_loader(args, data)
 
     elif args.MODEL in ('NCF', 'WDN', 'DCN'):
         data = dl_data_split(args, data)
@@ -101,7 +101,7 @@ def main(args):
     ######################## Model
     print(f'--------------- INIT {args.MODEL} ---------------')
     if args.MODEL=='FM':
-        model = FactorizationMachineModel(args, data)
+        model = FactorizationMachineModel(args, train_dataset, valid_dataset, data)
     elif args.MODEL=='FFM':
         model = FieldAwareFactorizationMachineModel(args, data)
     elif args.MODEL=='NCF':
@@ -152,6 +152,15 @@ def main(args):
         submission['rating'] = predicts
     else:
         pass
+
+    #기존 파일 저장 방식
+    now = time.localtime()
+    now_date = time.strftime('%Y%m%d', now)
+    now_hour = time.strftime('%X', now)
+    save_time = now_date + '_' + now_hour.replace(':', '')
+    submission.to_csv('submit/{}_{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), 'origin'), index=False)
+
+    #rule based 적용 저장
     train1 = pd.read_csv('./data/train_ratings.csv')
 
     count=train1.groupby("user_id").size()
@@ -227,7 +236,7 @@ if __name__ == "__main__":
     arg('--CNN_FM_LATENT_DIM', type=int, default=8, help='CNN_FM에서 user/item/image에 대한 latent 차원을 조정할 수 있습니다.')
 
     ############### DeepCoNN
-    arg('--DEEPCONN_VECTOR_CREATE', type=bool, default=False, help='DEEP_CONN에서 text vector 생성 여부를 조정할 수 있으며 최초 학습에만 True로 설정하여야합니다.')
+    arg('--DEEPCONN_VECTOR_CREATE', type=bool, default=True, help='DEEP_CONN에서 text vector 생성 여부를 조정할 수 있으며 최초 학습에만 True로 설정하여야합니다.')
     arg('--DEEPCONN_EMBED_DIM', type=int, default=32, help='DEEP_CONN에서 user와 item에 대한 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--DEEPCONN_LATENT_DIM', type=int, default=10, help='DEEP_CONN에서 user/item/image에 대한 latent 차원을 조정할 수 있습니다.')
     arg('--DEEPCONN_CONV_1D_OUT_DIM', type=int, default=50, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
