@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
@@ -394,10 +394,13 @@ def process_context_data(users, books, ratings1, ratings2):
     # philippines
     users.loc[users['user_id'] == 131023, 'location_country'] = 'philippines'
     #########################
+
     #########################
     users = users.drop(['location_city', 'location_state'], axis=1)
     #########################
+
     ratings = pd.concat([ratings1, ratings2]).reset_index(drop=True)
+
     #출판사
     publisher_dict=(books['publisher'].value_counts()).to_dict()
     publisher_count_df= pd.DataFrame(list(publisher_dict.items()),columns = ['publisher','count'])
@@ -410,6 +413,7 @@ def process_context_data(users, books, ratings1, ratings2):
             books.loc[books[books['isbn'].apply(lambda x: x[:4])==number].index,'publisher'] = right_publisher
         except: 
             pass
+    
     #카테고리
     books.loc[books[books['category'].notnull()].index, 'category'] = books[books['category'].notnull()]['category'].apply(lambda x: re.sub('[\W_]+',' ',x).strip())
     category_df = pd.DataFrame(books['category'].value_counts()).reset_index()
@@ -439,7 +443,106 @@ def process_context_data(users, books, ratings1, ratings2):
     context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'language', 'book_title']], on='isbn', how='left')
     train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
     test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
+
+
+    ######################### age 변수 category 별 평균으로 전처리
+    # train_df
+    cat_age_dict = train_df.groupby('category').mean()['age'].to_dict()
     
+    def fill_age(cat):
+        return cat_age_dict[cat]
+
+    train_df.loc[(train_df['age'].isna()) & (train_df['category'].notna()), 'age'] =\
+        train_df.loc[(train_df['age'].isna()) & (train_df['category'].notna()), 'category'].apply(fill_age)
+
+    # test_df
+    cat_age_dict = test_df.groupby('category').mean()['age'].to_dict()
+    
+    def fill_age(cat):
+        return cat_age_dict[cat]
+
+    test_df.loc[(test_df['age'].isna()) & (test_df['category'].notna()), 'age'] =\
+        test_df.loc[(test_df['age'].isna()) & (test_df['category'].notna()), 'category'].apply(fill_age)
+    
+
+    ######################### data 수가 n개 이하인 나라 추출
+    cnty_n = 1
+    cnty_val_cnt = pd.DataFrame(train_df['location_country'].value_counts())
+    countries_to_empty_set = set(cnty_val_cnt.loc[cnty_val_cnt['location_country'] <= cnty_n].index)
+
+    #########################
+    # 해당 나라들 empty로 때려박음
+    '''
+    def one_frq_cnty_to_ety(cnty):
+        if cnty in countries_to_empty_set:
+            return 'empty'
+        return cnty
+    
+    train_df['location_country'] = train_df['location_country'].apply(one_frq_cnty_to_ety)
+    test_df['location_country'] = test_df['location_country'].apply(one_frq_cnty_to_ety)
+    test_df.loc[test_df['location_country'].isna(), 'location_country'] = 'empty'
+    '''
+    # 해당 나라들 데이터에서 제거
+    def sparse_frq_cnty_to_zero(cnty):
+        if cnty in countries_to_empty_set:
+            return 0
+        return 1
+
+    train_df['drop_zeros'] = train_df['location_country'].apply(sparse_frq_cnty_to_zero)
+    train_df = train_df.loc[train_df['drop_zeros'] == 1].drop(['drop_zeros'], axis=1)
+    #########################
+
+    ######################### language 변수 user_id 별로 채우기
+    # train_df
+    lang_by_uid = pd.DataFrame(train_df.groupby('user_id')['language'].agg(pd.Series.mode))
+    lang_by_uid = lang_by_uid.reset_index()
+    lang_by_uid.columns = ['user_id', 'lang_by_uid']
+    train_df = train_df.merge(lang_by_uid, on='user_id', how='left')
+
+    def fill_lang(lang):
+        if isinstance(lang, str):
+            return lang
+        elif not len(lang):
+            return 'en'
+        else:
+            return lang[0]
+
+    train_df.loc[train_df['language'].isna(), 'language'] =\
+        train_df.loc[train_df['language'].isna(), 'lang_by_uid'].apply(fill_lang)
+    train_df = train_df.drop(['lang_by_uid'], axis=1)
+
+    # test_df
+    lang_by_uid = pd.DataFrame(test_df.groupby('user_id')['language'].agg(pd.Series.mode))
+    lang_by_uid = lang_by_uid.reset_index()
+    lang_by_uid.columns = ['user_id', 'lang_by_uid']
+    test_df = test_df.merge(lang_by_uid, on='user_id', how='left')
+
+    def fill_lang(lang):
+        if isinstance(lang, str):
+            return lang
+        elif not len(lang):
+            return 'en'
+        else:
+            return lang[0]
+
+    test_df.loc[test_df['language'].isna(), 'language'] =\
+        test_df.loc[test_df['language'].isna(), 'lang_by_uid'].apply(fill_lang)
+    test_df = test_df.drop(['lang_by_uid'], axis=1)
+    #########################
+
+    # sparse language 데이터에서 제거
+    lang_cnt_dict = train_df.language.value_counts().to_dict()
+    lang_n = 1
+
+    def elim_sparse_lang(lang):
+        if lang_cnt_dict[lang] <= lang_n:
+            return 0
+        return 1
+
+    train_df['elim_lang'] = train_df['language'].apply(elim_sparse_lang)
+    train_df = train_df.loc[train_df['elim_lang'] == 1].drop(['elim_lang'], axis=1)
+    #########################
+
     # 인덱싱 처리
     # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
     # loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
@@ -535,14 +638,38 @@ def context_data_load(args):
     return data
     
 def context_data_split(args, data):
-    X_train, X_valid, y_train, y_valid = train_test_split(
-                                                        data['train'].drop(['rating'], axis=1),
-                                                        data['train']['rating'],
-                                                        test_size=args.TEST_SIZE,
-                                                        random_state=args.SEED,
-                                                        shuffle=True
-                                                        )
-    data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+    if args.SPLIT_OPT == 'tts':
+        X_train, X_valid, y_train, y_valid = train_test_split(
+                                                            data['train'].drop(['rating'], axis=1),
+                                                            data['train']['rating'],
+                                                            test_size=args.TEST_SIZE,
+                                                            random_state=args.SEED,
+                                                            shuffle=True,
+                                                            ##### stratify
+                                                            # stratify=data['train']['rating']
+                                                            #####
+                                                            )
+        data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+
+
+    ######################### StratifiedKFold
+    elif args.SPLIT_OPT == 'skf':
+        xt = 'X_train'; xv = 'X_valid'
+        yt = 'y_train'; yv = 'y_valid'        
+        n_splits = 5
+
+        skf = StratifiedKFold(n_splits=n_splits, random_state=args.SEED, shuffle=True)
+        for i, train_idx, test_idx in enumerate(skf.split(data['train'].drop(['rating'], axis=1), data['train']['rating'])):
+            X_train, X_valid =\
+                data['train'].drop(['rating'], axis=1)[train_idx], data['train'].drop(['rating'], axis=1)[test_idx]
+            y_train, y_valid =\
+                data['train']['rating'][train_idx], data['train']['rating'][test_idx]
+
+            data[xt+i], data[xv+i], data[yt+i], data[yv+i] = X_train, X_valid, y_train, y_valid
+
+        data['n_splits'] = n_splits
+    #########################
+
     return data
 
 
@@ -579,4 +706,6 @@ def context_data_loader(args, data):
 
     data['train_dataloader'], data['valid_dataloader'], data['test_dataloader'] = train_dataloader, valid_dataloader, test_dataloader
 
-    return data
+    print(train_dataset)
+    return train_dataset, valid_dataset, data
+    # return data

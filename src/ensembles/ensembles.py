@@ -43,7 +43,9 @@ class Ensemble:
     def mixed(self):
         result = self.output_df[self.filenames[0]].copy()
         for idx in range(len(self.filenames)-1):
+            
             pre_idx = self.filenames[idx]
             post_idx = self.filenames[idx+1]
+            
             result[self.output_df[pre_idx]<1] = self.output_df.loc[self.output_df[pre_idx]<1,post_idx]
         return result.tolist()
