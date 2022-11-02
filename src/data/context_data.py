@@ -433,13 +433,17 @@ def process_context_data(users, books, ratings1, ratings2):
     # 5개 이하인 항목은 others로 묶어주도록 하겠습니다.
     others_list = category_high_df[category_high_df['count']<5]['category'].values
     books.loc[books[books['category_high'].isin(others_list)].index, 'category_high']='others'
-    # del books['category']
-    # books.rename(columns = {'category_high':'category'},inplace=True)
+    # # del books['category']
+    # # books.rename(columns = {'category_high':'category'},inplace=True)
+
+    
+
     # 인덱싱 처리된 데이터 조인
     # isbn,book_title,book_author,year_of_publication,publisher,img_url,language,category,summary,img_path
-    context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-    train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
-    test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'publisher', 'language', 'book_author']], on='isbn', how='left')
+    context_df = ratings.merge(users, on='user_id', how='left').merge(books[['isbn', 'category', 'language', 'book_title']], on='isbn', how='left')
+    train_df = ratings1.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
+    test_df = ratings2.merge(users, on='user_id', how='left').merge(books[['isbn', 'category','language', 'book_title']], on='isbn', how='left')
+    
     # 인덱싱 처리
     # loc_city2idx = {v:k for k,v in enumerate(context_df['location_city'].unique())}
     # loc_state2idx = {v:k for k,v in enumerate(context_df['location_state'].unique())}
@@ -456,23 +460,23 @@ def process_context_data(users, books, ratings1, ratings2):
     test_df['age'] = test_df['age'].apply(age_map)
     # book 파트 인덱싱
     category2idx = {v:k for k,v in enumerate(context_df['category'].unique())}
-    publisher2idx = {v:k for k,v in enumerate(context_df['publisher'].unique())}
+    # publisher2idx = {v:k for k,v in enumerate(context_df['publisher'].unique())}
     language2idx = {v:k for k,v in enumerate(context_df['language'].unique())}
-    author2idx = {v:k for k,v in enumerate(context_df['book_author'].unique())}
+    author2idx = {v:k for k,v in enumerate(context_df['book_title'].unique())}
     train_df['category'] = train_df['category'].map(category2idx)
-    train_df['publisher'] = train_df['publisher'].map(publisher2idx)
+    # train_df['publisher'] = train_df['publisher'].map(publisher2idx)
     train_df['language'] = train_df['language'].map(language2idx)
-    train_df['book_author'] = train_df['book_author'].map(author2idx)
+    train_df['book_title'] = train_df['book_title'].map(author2idx)
     test_df['category'] = test_df['category'].map(category2idx)
-    test_df['publisher'] = test_df['publisher'].map(publisher2idx)
+    # test_df['publisher'] = test_df['publisher'].map(publisher2idx)
     test_df['language'] = test_df['language'].map(language2idx)
-    test_df['book_author'] = test_df['book_author'].map(author2idx)
+    test_df['book_title'] = test_df['book_title'].map(author2idx)
     idx = {
         # "loc_city2idx":loc_city2idx,
         # "loc_state2idx":loc_state2idx,
         "loc_country2idx":loc_country2idx,
         "category2idx":category2idx,
-        "publisher2idx":publisher2idx,
+        # "publisher2idx":publisher2idx,
         "language2idx":language2idx,
         "author2idx":author2idx,
     }
@@ -516,7 +520,7 @@ def context_data_load(args):
     '''
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_country2idx']),
-                            len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
+                            len(idx['category2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
 
     data = {
             'train':context_train,
@@ -534,39 +538,39 @@ def context_data_load(args):
 
     return data
     
-# def context_data_split(args, data):
-#     X_train, X_valid, y_train, y_valid = train_test_split(
-#                                                         data['train'].drop(['rating'], axis=1),
-#                                                         data['train']['rating'],
-#                                                         test_size=args.TEST_SIZE,
-#                                                         random_state=args.SEED,
-#                                                         shuffle=True
-#                                                         )
-#     data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
-#     return data
-
-
 def context_data_split(args, data):
-    count=data['train'].groupby("user_id").size()
-    dfcount = pd.DataFrame(count, columns=["count"])
-    data['train']=data['train'].merge(dfcount,on="user_id")
-    data['train']=data['train'][1::]
-    alrtrain = data['train'][data['train']["count"]!=1].drop(['count'],axis=1)
-    newtrain1 = data['train'][data['train']["count"]==1].drop(['count'],axis=1)
-
-    alr_train, alr_valid, alry_train, alry_valid = train_test_split(
-                                                    alrtrain.drop(['rating'], axis=1),
-                                                    alrtrain['rating'],
-                                                    test_size = 0.11,
-                                                    random_state=42, # args.SEED
-                                                    shuffle=True
-                                                    )
-
-
-    data['X_train'], data['y_train'],  = alr_train, alry_train
-    data['X_valid'] = pd.concat([newtrain1.drop(['rating'], axis=1),alr_valid])
-    data['y_valid'] = pd.concat([newtrain1['rating'],alry_valid])
+    X_train, X_valid, y_train, y_valid = train_test_split(
+                                                        data['train'].drop(['rating'], axis=1),
+                                                        data['train']['rating'],
+                                                        test_size=args.TEST_SIZE,
+                                                        random_state=args.SEED,
+                                                        shuffle=True
+                                                        )
+    data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
     return data
+
+
+# def context_data_split(args, data):
+#     count=data['train'].groupby("user_id").size()
+#     dfcount = pd.DataFrame(count, columns=["count"])
+#     data['train']=data['train'].merge(dfcount,on="user_id")
+#     data['train']=data['train'][1::]
+#     alrtrain = data['train'][data['train']["count"]!=1].drop(['count'],axis=1)
+#     newtrain1 = data['train'][data['train']["count"]==1].drop(['count'],axis=1)
+
+#     alr_train, alr_valid, alry_train, alry_valid = train_test_split(
+#                                                     alrtrain.drop(['rating'], axis=1),
+#                                                     alrtrain['rating'],
+#                                                     test_size = 0.11,
+#                                                     random_state=42, # args.SEED
+#                                                     shuffle=True
+#                                                     )
+
+
+#     data['X_train'], data['y_train'],  = alr_train, alry_train
+#     data['X_valid'] = pd.concat([newtrain1.drop(['rating'], axis=1),alr_valid])
+#     data['y_valid'] = pd.concat([newtrain1['rating'],alry_valid])
+#     return data
 
 def context_data_loader(args, data):
     train_dataset = TensorDataset(torch.LongTensor(data['X_train'].values), torch.LongTensor(data['y_train'].values))
