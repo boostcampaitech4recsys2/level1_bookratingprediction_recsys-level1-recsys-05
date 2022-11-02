@@ -33,7 +33,7 @@ def main(args):
     ############## WANDB START
     
     wandb.init(
-        project="book_recomendation", 
+        project="seongjae_tmap", 
         entity="boostcamp_l1_recsys05",
         name=f"experiment_{args.MODEL}", 
         # Track hyperparameters and run metadata
