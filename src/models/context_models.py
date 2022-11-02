@@ -46,7 +46,7 @@ class FactorizationMachineModel:
         
     def train(self):
         # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
-        kfold = Fold(n_splits = 5, shuffle = True)
+        kfold = KFold(n_splits = 5, shuffle = True)
         validation_loss = []
         total_mean = []
         
