@@ -1,7 +1,7 @@
 import re
 import numpy as np
 import pandas as pd
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, StratifiedKFold
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
@@ -446,6 +446,7 @@ def process_context_data(users, books, ratings1, ratings2):
 
 
     ######################### age 변수 category 별 평균으로 전처리
+    # train_df
     cat_age_dict = train_df.groupby('category').mean()['age'].to_dict()
     
     def fill_age(cat):
@@ -454,14 +455,24 @@ def process_context_data(users, books, ratings1, ratings2):
     train_df.loc[(train_df['age'].isna()) & (train_df['category'].notna()), 'age'] =\
         train_df.loc[(train_df['age'].isna()) & (train_df['category'].notna()), 'category'].apply(fill_age)
 
+    # test_df
+    cat_age_dict = test_df.groupby('category').mean()['age'].to_dict()
+    
+    def fill_age(cat):
+        return cat_age_dict[cat]
+
+    test_df.loc[(test_df['age'].isna()) & (test_df['category'].notna()), 'age'] =\
+        test_df.loc[(test_df['age'].isna()) & (test_df['category'].notna()), 'category'].apply(fill_age)
+    
 
     ######################### data 수가 n개 이하인 나라 추출
-    cnty_n = 3
+    cnty_n = 1
     cnty_val_cnt = pd.DataFrame(train_df['location_country'].value_counts())
-    cnty_val_cnt.loc[cnty_val_cnt['location_country'] <= cnty_n]
-    countries_to_empty_set = set(cnty_val_cnt.loc[cnty_val_cnt['location_country'] <= 2].index)
+    countries_to_empty_set = set(cnty_val_cnt.loc[cnty_val_cnt['location_country'] <= cnty_n].index)
 
-    ######################### 해당 나라들 empty로 때려박음
+    #########################
+    # 해당 나라들 empty로 때려박음
+    '''
     def one_frq_cnty_to_ety(cnty):
         if cnty in countries_to_empty_set:
             return 'empty'
@@ -470,6 +481,15 @@ def process_context_data(users, books, ratings1, ratings2):
     train_df['location_country'] = train_df['location_country'].apply(one_frq_cnty_to_ety)
     test_df['location_country'] = test_df['location_country'].apply(one_frq_cnty_to_ety)
     test_df.loc[test_df['location_country'].isna(), 'location_country'] = 'empty'
+    '''
+    # 해당 나라들 데이터에서 제거
+    def sparse_frq_cnty_to_zero(cnty):
+        if cnty in countries_to_empty_set:
+            return 0
+        return 1
+
+    train_df['drop_zeros'] = train_df['location_country'].apply(sparse_frq_cnty_to_zero)
+    train_df = train_df.loc[train_df['drop_zeros'] == 1].drop(['drop_zeros'], axis=1)
     #########################
 
 
@@ -568,14 +588,38 @@ def context_data_load(args):
     return data
     
 def context_data_split(args, data):
-    X_train, X_valid, y_train, y_valid = train_test_split(
-                                                        data['train'].drop(['rating'], axis=1),
-                                                        data['train']['rating'],
-                                                        test_size=args.TEST_SIZE,
-                                                        random_state=args.SEED,
-                                                        shuffle=True
-                                                        )
-    data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+    if args.SPLIT_OPT == 'tts':
+        X_train, X_valid, y_train, y_valid = train_test_split(
+                                                            data['train'].drop(['rating'], axis=1),
+                                                            data['train']['rating'],
+                                                            test_size=args.TEST_SIZE,
+                                                            random_state=args.SEED,
+                                                            shuffle=True,
+                                                            ##### stratify
+                                                            # stratify=data['train']['rating']
+                                                            #####
+                                                            )
+        data['X_train'], data['X_valid'], data['y_train'], data['y_valid'] = X_train, X_valid, y_train, y_valid
+
+
+    ######################### StratifiedKFold
+    elif args.SPLIT_OPT == 'skf':
+        xt = 'X_train'; xv = 'X_valid'
+        yt = 'y_train'; yv = 'y_valid'        
+        n_splits = 5
+
+        skf = StratifiedKFold(n_splits=n_splits, random_state=args.SEED, shuffle=True)
+        for i, train_idx, test_idx in enumerate(skf.split(data['train'].drop(['rating'], axis=1), data['train']['rating'])):
+            X_train, X_valid =\
+                data['train'].drop(['rating'], axis=1)[train_idx], data['train'].drop(['rating'], axis=1)[test_idx]
+            y_train, y_valid =\
+                data['train']['rating'][train_idx], data['train']['rating'][test_idx]
+
+            data[xt+i], data[xv+i], data[yt+i], data[yv+i] = X_train, X_valid, y_train, y_valid
+
+        data['n_splits'] = n_splits
+    #########################
+
     return data
 
 
