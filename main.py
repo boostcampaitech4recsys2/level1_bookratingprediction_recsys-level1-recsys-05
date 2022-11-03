@@ -18,7 +18,7 @@ from src.data import (context_data_load, context_data_loader,
 
 
 def main(args):
-    """
+    
     wandb.init(
         project="minju-test", 
         entity="boostcamp_l1_recsys05",
@@ -28,7 +28,7 @@ def main(args):
             "epochs": args.EPOCHS,
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR
-            })"""
+            })
     seed_everything(args.SEED)
 
     ############## WANDB START
@@ -69,13 +69,7 @@ def main(args):
             "lr": args.LR,
             "emb_dim": 16
             }
-    print(args.NCF_MLP_DIMS)
-    print(type(args.NCF_MLP_DIMS))
-    print(args.NCF_MLP_DIMS[0])
-    tmp = (2,2)
-    print(tmp)
-    print(type(tmp))
-    input()
+    
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -134,7 +128,7 @@ def main(args):
     else:
         pass
 
-    wandb.config.update(args)
+    # wandb.config.update(args)
     # wandb.watch(model)
 
     ######################## TRAIN
@@ -253,7 +247,7 @@ if __name__ == "__main__":
     arg('--CNN_FM_LATENT_DIM', type=int, default=8, help='CNN_FM에서 user/item/image에 대한 latent 차원을 조정할 수 있습니다.')
 
     ############### DeepCoNN
-    arg('--DEEPCONN_VECTOR_CREATE', type=bool, default=True, help='DEEP_CONN에서 text vector 생성 여부를 조정할 수 있으며 최초 학습에만 True로 설정하여야합니다.')
+    arg('--DEEPCONN_VECTOR_CREATE', type=bool, default=False, help='DEEP_CONN에서 text vector 생성 여부를 조정할 수 있으며 최초 학습에만 True로 설정하여야합니다.')
     arg('--DEEPCONN_EMBED_DIM', type=int, default=32, help='DEEP_CONN에서 user와 item에 대한 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--DEEPCONN_LATENT_DIM', type=int, default=10, help='DEEP_CONN에서 user/item/image에 대한 latent 차원을 조정할 수 있습니다.')
     arg('--DEEPCONN_CONV_1D_OUT_DIM', type=int, default=50, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
