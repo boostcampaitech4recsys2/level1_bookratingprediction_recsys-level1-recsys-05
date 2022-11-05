@@ -32,9 +32,8 @@ def main(args):
     seed_everything(args.SEED)
 
     ############## WANDB START
-    """
     wandb.init(
-        project="seongjae_tmap", 
+        project="schini-test", 
         entity="boostcamp_l1_recsys05",
         name=f"experiment_{args.MODEL}", 
         # Track hyperparameters and run metadata
@@ -44,7 +43,6 @@ def main(args):
             "lr": args.LR,
             "embed_dim": 16
             })
-        """
     
     """
     sweep_configuration = {
@@ -69,13 +67,13 @@ def main(args):
             "lr": args.LR,
             "emb_dim": 16
             }
-    print(args.NCF_MLP_DIMS)
-    print(type(args.NCF_MLP_DIMS))
-    print(args.NCF_MLP_DIMS[0])
-    tmp = (2,2)
-    print(tmp)
-    print(type(tmp))
-    input()
+    # print(args.NCF_MLP_DIMS)
+    # print(type(args.NCF_MLP_DIMS))
+    # print(args.NCF_MLP_DIMS[0])
+    # tmp = (2,2)
+    # print(tmp)
+    # print(type(tmp))
+    # input()
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -169,6 +167,8 @@ def main(args):
         submission['rating'] = predicts
     else:
         pass
+    
+    
 
     #기존 파일 저장 방식
     now = time.localtime()
@@ -177,29 +177,69 @@ def main(args):
     save_time = now_date + '_' + now_hour.replace(':', '')
     submission.to_csv('submit/{}_{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), 'origin'), index=False)
 
-    #rule based 적용 저장
-    train1 = pd.read_csv('./data/train_ratings.csv')
+    
+    # '''
+    # rule-based
+    # '''
+    # #########################
+    # train = pd.read_csv(args.DATA_PATH + 'train_ratings.csv')
+    # n_thres = 5; k = 0.5
+    # #########################
 
-    count=train1.groupby("user_id").size()
-    dfcount = pd.DataFrame(count, columns=["count"])
-    submission=pd.merge(submission,dfcount, how='left', on='user_id')
-    submission['count'] = submission['count'].fillna(0)
-    submission.set_index("user_id",inplace = True)
+    # # user-based
+    # count = train.groupby("user_id").size()
+    # dfcount = pd.DataFrame(count, columns=["count"])
+    # train = pd.merge(train, dfcount, how='left', on='user_id')
+    # submission = pd.merge(submission, dfcount, how='left', on='user_id')
+    # submission['count'] = submission['count'].fillna(0)
+    # submission.set_index("user_id", inplace = True)
 
-    for row in submission.itertuples():
-        if row[3] == 0 :
-            submission.at[row[0],"rating"] = 7
+    # for row in submission.itertuples():
+    #     if row[3] == 0 :                                       # train에서 등장하지 않았던 user_id
+    #         submission.at[row[0],'rating'] = 7                 # 1개 user_id 평균
+    #     else:
+    #         if train[train['user_id']==row[0]]['count'].mean() >= n_thres :       # n_thres 번 이상 rating 매긴 user_id
+    #             if train[train['user_id']==row[0]]['rating'].std() <= k:          # 각자 매긴 rating 의 표준편차가 k 이하인 사람에게만 적용
+    #                 # submission.at[row[0], 'rating'] = train[train['isbn']==row[0]]['rating'].mean()
+    #                 ##### 표준편차 기준 더 작게 하고 round 씌워서 돌려보기
+    #                 submission.at[row[0], 'rating'] = round(train[train['user_id']==row[0]]['rating'].mean())
+    #                 #####
+    
 
-    submission = submission.reset_index()
-    submission = submission.drop(['count'], axis=1)
+    # # drop "count"
+    # submission = submission.drop(['count'], axis=1)
+    # train = train.drop(['count'], axis=1)
+    # submission = submission.reset_index()
+
+    # # item-based
+    # count = train.groupby('isbn').size()
+    # dfcount = pd.DataFrame(count, columns=['count'])
+    # train = pd.merge(train, dfcount, how='left', on='isbn')
+    # submission = pd.merge(submission, dfcount, how='left', on='isbn')
+    # submission['count'] = submission['count'].fillna(0)
+    # isbnlist = set()
+    # for row in submission.itertuples():
+    #     if row[0] not in isbnlist:
+    #         if row[3] == 0 :                                                   # train에서 등장하지 않았던 isbn
+    #             submission.at[row[0], 'rating'] = 6.884027966331795            # 1개 isbn 평균
+    #         else:
+    #             if train[train['isbn']==row[1]]['count'].mean() >= n_thres :   # n_thres 명 이상 rating 매긴 isbn
+    #                 if train[train['user_id']== row[1]]['rating'].std() <= k:  # 각자 매긴 rating 의 표준편차가 k 이하인 사람에게만 적용
+    #                     # submission.at[row[0],'rating'] = train[train['isbn']== row[0]]['rating'].mean()
+    #                     ##### 표준편차 기준 더 작게 하고 round 씌워서 돌려보기
+    #                     submission.at[row[0], 'rating'] = round(train[train['isbn']==row[1]]['rating'].mean())
+    #                     #####
+    #         isbnlist.add(row[0])
+    # submission = submission.reset_index()
+    # submission = submission.drop(['count'], axis=1)
 
 
-    now = time.localtime()
-    now_date = time.strftime('%Y%m%d', now)
-    now_hour = time.strftime('%X', now)
-    save_time = now_date + '_' + now_hour.replace(':', '')
-    submission.to_csv('submit/{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), index=False))
-
+    # now = time.localtime()
+    # now_date = time.strftime('%Y%m%d', now)
+    # now_hour = time.strftime('%X', now)
+    # save_time = now_date + '_' + now_hour.replace(':', '')
+    # submission.to_csv('submit/{}_{}_{}_{}_{}_{}.csv'.format(save_time, args.MODEL, round(rmse, 5), n_thres, k, 'user_isbn', index=False))
+    # #########################
     
 
 if __name__ == "__main__":
@@ -253,7 +293,7 @@ if __name__ == "__main__":
     arg('--CNN_FM_LATENT_DIM', type=int, default=8, help='CNN_FM에서 user/item/image에 대한 latent 차원을 조정할 수 있습니다.')
 
     ############### DeepCoNN
-    arg('--DEEPCONN_VECTOR_CREATE', type=bool, default=True, help='DEEP_CONN에서 text vector 생성 여부를 조정할 수 있으며 최초 학습에만 True로 설정하여야합니다.')
+    arg('--DEEPCONN_VECTOR_CREATE', type=bool, default=False, help='DEEP_CONN에서 text vector 생성 여부를 조정할 수 있으며 최초 학습에만 True로 설정하여야합니다.')
     arg('--DEEPCONN_EMBED_DIM', type=int, default=32, help='DEEP_CONN에서 user와 item에 대한 embedding시킬 차원을 조정할 수 있습니다.')
     arg('--DEEPCONN_LATENT_DIM', type=int, default=10, help='DEEP_CONN에서 user/item/image에 대한 latent 차원을 조정할 수 있습니다.')
     arg('--DEEPCONN_CONV_1D_OUT_DIM', type=int, default=50, help='DEEP_CONN에서 1D conv의 출력 크기를 조정할 수 있습니다.')
