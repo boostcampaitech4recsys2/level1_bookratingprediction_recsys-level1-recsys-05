@@ -46,15 +46,14 @@ class FactorizationMachineModel:
         
     def train(self):
         # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
-        kfold = KFold(n_splits = 3, shuffle = True)
+        kfold = KFold(n_splits = 2, shuffle = True)
         validation_loss = []
         total_mean = []
         
         for fold, (train_idx, val_idx) in enumerate(kfold.split(self.train_dataset)):
-            # print(train_idx,val_idx)
             train_subsampler = SubsetRandomSampler(train_idx)
             val_subsampler = SubsetRandomSampler(val_idx)
-            # print(train_subsampler, val_subsampler)
+            
             train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler = train_subsampler)
             valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler = val_subsampler)
 
@@ -64,7 +63,6 @@ class FactorizationMachineModel:
                 total_loss = 0
                 tk0 = tqdm.tqdm(train_dataloader, smoothing=0, mininterval=1.0)
                 for i, (fields, target) in enumerate(tk0):
-                    print(fields, target)
                     self.model.zero_grad()
                     fields, target = fields.to(self.device), target.to(self.device)
 
@@ -78,11 +76,11 @@ class FactorizationMachineModel:
                         tk0.set_postfix(loss=total_loss / self.log_interval)
                         total_loss = 0
                     
-                    wandb.log({"loss": total_loss}, step = epoch)
-                    rmse_score = self.predict_train(valid_dataloader)
-                    wandb.log({"rmse": rmse_score}, step = epoch)
-                    print('k-fold:',fold,'epoch:', epoch, 'validation: rmse:', rmse_score)
-                    validation_loss.append(rmse_score)
+                wandb.log({"loss": total_loss}, step = epoch)
+                rmse_score = self.predict_train(valid_dataloader)
+                wandb.log({"rmse": rmse_score}, step = epoch)
+                print('k-fold:',fold,'epoch:', epoch, 'validation: rmse:', rmse_score)
+                validation_loss.append(rmse_score)
         validation_loss = np.array(validation_loss)
         mean = np.mean(validation_loss)
         std = np.std(validation_loss)
@@ -176,6 +174,7 @@ class FieldAwareFactorizationMachineModel:
         ######################## WANDB FINISH
         run.finish()
         ########################
+        return rmse_score
 
 
     def predict_train(self):

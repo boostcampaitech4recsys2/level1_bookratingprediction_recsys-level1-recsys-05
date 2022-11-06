@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
+from etc import feature_engineering as fe 
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -581,8 +582,6 @@ def process_context_data(users, books, ratings1, ratings2):
     }
     return idx, train_df, test_df
 	
-
-
 def context_data_load(args):
 
     ######################## DATA LOAD
@@ -612,62 +611,8 @@ def context_data_load(args):
     books['isbn'] = books['isbn'].map(isbn2idx)
 
     idx, context_train, context_test = process_context_data(users, books, train, test)
-    '''
-    field_dims = np.array([len(user2idx), len(isbn2idx),
-                            6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
-                            len(idx['category2idx']), len(idx['publisher2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-    '''
-    field_dims = np.array([len(user2idx), len(isbn2idx),
-                            6, len(idx['loc_country2idx']),
-                            len(idx['category2idx']), len(idx['language2idx']), len(idx['author2idx'])], dtype=np.uint32)
-
-    data = {
-            'train':context_train,
-            'test':context_test.drop(['rating'], axis=1),
-            'field_dims':field_dims,
-            'users':users,
-            'books':books,
-            'sub':sub,
-            'idx2user':idx2user,
-            'idx2isbn':idx2isbn,
-            'user2idx':user2idx,
-            'isbn2idx':isbn2idx,
-            }
-
-
-    return data
-	
-
-
-def context_data_load(args):
-
-    ######################## DATA LOAD
-    users = pd.read_csv(args.DATA_PATH + 'users.csv')
-    books = pd.read_csv(args.DATA_PATH + 'books.csv')
-    train = pd.read_csv(args.DATA_PATH + 'train_ratings.csv')
-    test = pd.read_csv(args.DATA_PATH + 'test_ratings.csv')
-    sub = pd.read_csv(args.DATA_PATH + 'sample_submission.csv')
-
-    ids = pd.concat([train['user_id'], sub['user_id']]).unique()
-    isbns = pd.concat([train['isbn'], sub['isbn']]).unique()
-
-    idx2user = {idx:id for idx, id in enumerate(ids)}
-    idx2isbn = {idx:isbn for idx, isbn in enumerate(isbns)}
-
-    user2idx = {id:idx for idx, id in idx2user.items()}
-    isbn2idx = {isbn:idx for idx, isbn in idx2isbn.items()}
-
-    train['user_id'] = train['user_id'].map(user2idx)
-    sub['user_id'] = sub['user_id'].map(user2idx)
-    test['user_id'] = test['user_id'].map(user2idx)
-    users['user_id'] = users['user_id'].map(user2idx)
-
-    train['isbn'] = train['isbn'].map(isbn2idx)
-    sub['isbn'] = sub['isbn'].map(isbn2idx)
-    test['isbn'] = test['isbn'].map(isbn2idx)
-    books['isbn'] = books['isbn'].map(isbn2idx)
-
-    idx, context_train, context_test = process_context_data(users, books, train, test)
+    ##### 데이터 전처리 버전 함수 활용
+    # idx, context_train, context_test = fe.four_feature_engineering(users, books, train, test)
     '''
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
