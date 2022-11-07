@@ -46,10 +46,10 @@ class FactorizationMachineModel:
         
     def train(self):
         # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
+        
         kfold = KFold(n_splits = 5, shuffle = True)
         validation_loss = []
         total_mean = []
-        
         for fold, (train_idx, val_idx) in enumerate(kfold.split(self.train_dataset)):
             # print(train_idx,val_idx)
             train_subsampler = SubsetRandomSampler(train_idx)

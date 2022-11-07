@@ -32,4 +32,5 @@
   WDN_MLP_DIMS: (16, 16)
   WEIGHT_DECAY: 1e-06
   WANDB_SWEEP: False
+  SPLIT_OPT: tts
 

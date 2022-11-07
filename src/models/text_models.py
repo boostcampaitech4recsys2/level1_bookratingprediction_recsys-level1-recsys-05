@@ -90,6 +90,7 @@ class DeepCoNN:
         minimum_loss = 999999999
         loss_list = []
         tk0 = tqdm.tqdm(range(self.epochs), smoothing=0, mininterval=1.0)
+        wandb.init()
         for epoch in tk0:
             self.model.train()
             total_loss = 0
@@ -103,7 +104,7 @@ class DeepCoNN:
                 loss = self.criterion(y, target.float())
                 self.model.zero_grad()
                 loss.backward()
-                self.optimizer.step()
+                self.optimizer.step() 
                 total_loss += loss.item()
                 n += 1
             self.model.eval()
