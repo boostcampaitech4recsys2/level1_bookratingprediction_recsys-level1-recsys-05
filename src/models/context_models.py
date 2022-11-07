@@ -52,13 +52,13 @@ class FactorizationMachineModel:
         
     def train(self):
         # model: type, optimizer: torch.optim, train_dataloader: DataLoader, criterion: torch.nn, device: str, log_interval: int=100
+        
         kfold = KFold(n_splits = 5, shuffle = True)
         ################
         # skf = StratifiedKFold(n_splits=3, random_state=self.seed, shuffle=self.shuffle)
         ################
         validation_loss = []
         total_mean = []
-        
         for fold, (train_idx, val_idx) in enumerate(kfold.split(self.train_dataset)):
         ################
         # for fold, (train_idx, val_idx) in enumerate(skf.split(self.train_dataset)):

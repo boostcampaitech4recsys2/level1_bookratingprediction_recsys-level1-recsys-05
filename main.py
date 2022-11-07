@@ -53,7 +53,7 @@ def main(args):
             'batch_size': {'max': 2048, 'min': 512},
             'epochs': {'max': 20, 'min': 5},
             'lr': {'max': 0.002, 'min': 0.0005 }
-            }}   """
+            }}   
     sweep_configuration = {
     'method': 'bayes',
     'name': 'sweep',
@@ -66,6 +66,7 @@ def main(args):
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR,
             "emb_dim": 16
+<<<<<<< HEAD
             }
 <<<<<<< HEAD
     # print(args.NCF_MLP_DIMS)
@@ -78,6 +79,10 @@ def main(args):
 =======
     
 >>>>>>> cb089bf3c2ef8c46bc78d583bd05fd2c824a5d7b
+=======
+            }"""
+    
+>>>>>>> 7adb1188234bd2d679a59e645a4d59d61dd6637c
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -136,7 +141,11 @@ def main(args):
     else:
         pass
 
+<<<<<<< HEAD
     # wandb.config.update(args)
+=======
+    #wandb.config.update(args)
+>>>>>>> 7adb1188234bd2d679a59e645a4d59d61dd6637c
     # wandb.watch(model)
 
     ######################## TRAIN
