@@ -72,8 +72,8 @@ class FactorizationMachineModel:
             # train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=train_idx)
             # valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=val_idx)  
             ################          
-            # self.train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=train_idx)
-            # self.valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=val_idx)
+            #self.train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=train_idx)
+            #self.valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=val_idx)
             ################
             train_subsampler = SubsetRandomSampler(train_idx)
             val_subsampler = SubsetRandomSampler(val_idx)
@@ -85,9 +85,9 @@ class FactorizationMachineModel:
             for epoch in range(self.epochs):
                 self.model.train()
                 total_loss = 0
-                # tk0 = tqdm.tqdm(train_dataloader, smoothing=0, mininterval=1.0)
+                tk0 = tqdm.tqdm(train_dataloader, smoothing=0, mininterval=1.0)
                 ################
-                tk0 = tqdm.tqdm(self.train_dataloader, smoothing=0, mininterval=1.0)
+                #tk0 = tqdm.tqdm(self.train_dataloader, smoothing=0, mininterval=1.0)
                 ################
                 for i, (fields, target) in enumerate(tk0):
                     self.model.zero_grad()
@@ -104,7 +104,7 @@ class FactorizationMachineModel:
                         total_loss = 0
                     
                 wandb.log({"loss": total_loss}, step = epoch)
-                rmse_score = self.predict_train()
+                rmse_score = self.predict_train(valid_dataloader)
                 wandb.log({"rmse": rmse_score}, step = epoch)
                 print('k-fold:',fold,'epoch:', epoch, 'validation: rmse:', rmse_score)
                 validation_loss.append(rmse_score)
@@ -120,16 +120,16 @@ class FactorizationMachineModel:
 
         return np.mean(total_mean)
 
-    # def predict_train(self, valid_dataloader):
+    def predict_train(self, valid_dataloader):
     ################
-    def predict_train(self):
+    #def predict_train(self):
     ################
         self.model.eval()
         targets, predicts = list(), list()
         with torch.no_grad():
-            # for fields, target in tqdm.tqdm(valid_dataloader, smoothing=0, mininterval=1.0):
+            for fields, target in tqdm.tqdm(valid_dataloader, smoothing=0, mininterval=1.0):
             ################
-            for fields, target in tqdm.tqdm(self.valid_dataloader, smoothing=0, mininterval=1.0):
+            #for fields, target in tqdm.tqdm(self.valid_dataloader, smoothing=0, mininterval=1.0):
             ################
                 fields, target = fields.to(self.device), target.to(self.device)
                 y = self.model(fields)

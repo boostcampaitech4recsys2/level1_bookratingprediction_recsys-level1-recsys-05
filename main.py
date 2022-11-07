@@ -82,7 +82,6 @@ def main(args):
 =======
             }"""
     
->>>>>>> 7adb1188234bd2d679a59e645a4d59d61dd6637c
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -141,11 +140,8 @@ def main(args):
     else:
         pass
 
-<<<<<<< HEAD
     # wandb.config.update(args)
-=======
     #wandb.config.update(args)
->>>>>>> 7adb1188234bd2d679a59e645a4d59d61dd6637c
     # wandb.watch(model)
 
     ######################## TRAIN
