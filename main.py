@@ -66,23 +66,12 @@ def main(args):
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR,
             "emb_dim": 16
-<<<<<<< HEAD
+
             }
-<<<<<<< HEAD
-    # print(args.NCF_MLP_DIMS)
-    # print(type(args.NCF_MLP_DIMS))
-    # print(args.NCF_MLP_DIMS[0])
-    # tmp = (2,2)
-    # print(tmp)
-    # print(type(tmp))
-    # input()
-=======
     
->>>>>>> cb089bf3c2ef8c46bc78d583bd05fd2c824a5d7b
 =======
             }"""
     
->>>>>>> 7adb1188234bd2d679a59e645a4d59d61dd6637c
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
