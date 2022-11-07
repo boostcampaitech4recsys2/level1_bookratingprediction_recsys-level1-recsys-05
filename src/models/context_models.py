@@ -72,9 +72,14 @@ class FactorizationMachineModel:
             # train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=train_idx)
             # valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=val_idx)  
             ################          
-            self.train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=train_idx)
-            self.valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=val_idx)
+            # self.train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=train_idx)
+            # self.valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler=val_idx)
             ################
+            train_subsampler = SubsetRandomSampler(train_idx)
+            val_subsampler = SubsetRandomSampler(val_idx)
+            
+            train_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler = train_subsampler)
+            valid_dataloader = DataLoader(self.train_dataset, batch_size=self.batch_size, sampler = val_subsampler)
 
 
             for epoch in range(self.epochs):
@@ -85,7 +90,6 @@ class FactorizationMachineModel:
                 tk0 = tqdm.tqdm(self.train_dataloader, smoothing=0, mininterval=1.0)
                 ################
                 for i, (fields, target) in enumerate(tk0):
-                    # print(fields, target)
                     self.model.zero_grad()
                     fields, target = fields.to(self.device), target.to(self.device)
 
@@ -99,14 +103,6 @@ class FactorizationMachineModel:
                         tk0.set_postfix(loss=total_loss / self.log_interval)
                         total_loss = 0
                     
-                    '''
-                    wandb.log({"loss": total_loss}, step = epoch)
-                    rmse_score = self.predict_train(valid_dataloader)
-                    wandb.log({"rmse": rmse_score}, step = epoch)
-                    print('k-fold:',fold,'epoch:', epoch, 'validation: rmse:', rmse_score)
-                    validation_loss.append(rmse_score)
-                    '''
-
                 wandb.log({"loss": total_loss}, step = epoch)
                 rmse_score = self.predict_train()
                 wandb.log({"rmse": rmse_score}, step = epoch)
@@ -212,6 +208,7 @@ class FieldAwareFactorizationMachineModel:
         ######################## WANDB FINISH
         run.finish()
         ########################
+        return rmse_score
 
 
     def predict_train(self):

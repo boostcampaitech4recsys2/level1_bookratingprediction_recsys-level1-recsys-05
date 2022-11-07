@@ -18,7 +18,7 @@ from src.data import (context_data_load, context_data_loader,
 
 
 def main(args):
-    """
+    
     wandb.init(
         project="minju-test", 
         entity="boostcamp_l1_recsys05",
@@ -28,7 +28,7 @@ def main(args):
             "epochs": args.EPOCHS,
             "batch_size": args.BATCH_SIZE,
             "lr": args.LR
-            })"""
+            })
     seed_everything(args.SEED)
 
     ############## WANDB START
@@ -67,6 +67,7 @@ def main(args):
             "lr": args.LR,
             "emb_dim": 16
             }
+<<<<<<< HEAD
     # print(args.NCF_MLP_DIMS)
     # print(type(args.NCF_MLP_DIMS))
     # print(args.NCF_MLP_DIMS[0])
@@ -74,6 +75,9 @@ def main(args):
     # print(tmp)
     # print(type(tmp))
     # input()
+=======
+    
+>>>>>>> cb089bf3c2ef8c46bc78d583bd05fd2c824a5d7b
     ######################## DATA LOAD
     print(f'--------------- {args.MODEL} Load Data ---------------')
     if args.MODEL in ('FM', 'FFM'):
@@ -132,7 +136,7 @@ def main(args):
     else:
         pass
 
-    wandb.config.update(args)
+    # wandb.config.update(args)
     # wandb.watch(model)
 
     ######################## TRAIN

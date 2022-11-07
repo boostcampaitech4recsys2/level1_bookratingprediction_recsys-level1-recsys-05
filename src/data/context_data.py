@@ -5,6 +5,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
+from etc import feature_engineering as fe 
 
 def age_map(x: int) -> int:
     x = int(x)
@@ -581,8 +582,6 @@ def process_context_data(users, books, ratings1, ratings2):
     }
     return idx, train_df, test_df
 	
-
-
 def context_data_load(args):
 
     ######################## DATA LOAD
@@ -612,6 +611,8 @@ def context_data_load(args):
     books['isbn'] = books['isbn'].map(isbn2idx)
 
     idx, context_train, context_test = process_context_data(users, books, train, test)
+    ##### 데이터 전처리 버전 함수 활용
+    # idx, context_train, context_test = fe.four_feature_engineering(users, books, train, test)
     '''
     field_dims = np.array([len(user2idx), len(isbn2idx),
                             6, len(idx['loc_city2idx']), len(idx['loc_state2idx']), len(idx['loc_country2idx']),
@@ -706,6 +707,5 @@ def context_data_loader(args, data):
 
     data['train_dataloader'], data['valid_dataloader'], data['test_dataloader'] = train_dataloader, valid_dataloader, test_dataloader
 
-    print(train_dataset)
     return train_dataset, valid_dataset, data
     # return data
