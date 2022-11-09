@@ -10,3 +10,4 @@ __pycache__
 wandb
 /models
 #향후에 나오는 ignore값 추가시 주석 달아주세요.
+.env
