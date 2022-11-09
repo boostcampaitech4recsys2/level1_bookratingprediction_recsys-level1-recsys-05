@@ -5,7 +5,7 @@ from sklearn.model_selection import train_test_split, StratifiedKFold
 import torch
 import torch.nn as nn
 from torch.utils.data import TensorDataset, DataLoader, Dataset
-from etc import feature_engineering as fe 
+from . import feature_engineering as fe 
 
 def age_map(x: int) -> int:
     x = int(x)
