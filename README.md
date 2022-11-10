@@ -27,7 +27,7 @@
 - Rule Based : 평균, 표준편차 활용
 
 
-## ❗️ Result
+## ⭐️ Result
 - Public RMSE : 2.1831
 - Private RMSE : 2.1814
 - ![image](https://user-images.githubusercontent.com/82706646/200873968-468c4e78-643d-4acf-9132-540ab4245838.png)
